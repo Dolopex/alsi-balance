@@ -1,0 +1,70 @@
+{% comment %}
+Banner que aparece cuando la PWA es instalable.
+Muestra un boton para instalar la app en el dispositivo.
+{% endcomment %}
+
+<div id="pwa-install-banner" class="hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-sm z-50 bg-white border-2 border-alsi-200 rounded-xl shadow-pop p-4 animate-fade">
+    <div class="flex items-start gap-3">
+        <div class="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-alsi-600 to-alsi-800 rounded-xl flex items-center justify-center text-white font-extrabold text-lg">
+            A
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="font-bold text-slate-900 text-sm">Instalar ALSI Balance</div>
+            <div class="text-xs text-slate-600 mt-0.5">Accede mas rapido desde tu pantalla de inicio.</div>
+            <div class="flex gap-2 mt-3">
+                <button type="button" id="pwa-install-btn" class="btn btn-primary text-xs py-1.5 px-3">
+                    Instalar
+                </button>
+                <button type="button" id="pwa-install-dismiss" class="btn btn-ghost text-xs py-1.5 px-3">
+                    Ahora no
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var STORAGE_KEY = 'alsi_pwa_dismissed';
+    var banner = document.getElementById('pwa-install-banner');
+    var installBtn = document.getElementById('pwa-install-btn');
+    var dismissBtn = document.getElementById('pwa-install-dismiss');
+    var deferredPrompt = null;
+
+    // Verificar si el usuario ya descarto el banner recientemente
+    if (localStorage.getItem(STORAGE_KEY)) {
+        return;
+    }
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (banner) banner.classList.remove('hidden');
+    });
+
+    if (installBtn) {
+        installBtn.addEventListener('click', async function() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            try {
+                await deferredPrompt.userChoice;
+            } catch (e) {}
+            deferredPrompt = null;
+            if (banner) banner.classList.add('hidden');
+        });
+    }
+
+    if (dismissBtn) {
+        dismissBtn.addEventListener('click', function() {
+            localStorage.setItem(STORAGE_KEY, '1');
+            if (banner) banner.classList.add('hidden');
+        });
+    }
+
+    // Ocultar automaticamente si se instala la app
+    window.addEventListener('appinstalled', function() {
+        localStorage.setItem(STORAGE_KEY, '1');
+        if (banner) banner.classList.add('hidden');
+    });
+})();
+</script>
