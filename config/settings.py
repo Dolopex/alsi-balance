@@ -178,18 +178,6 @@ ASGI_APPLICATION = "config.asgi.application"
 # tambien use el default de SQLite en dev.
 DATABASE_URL = os.environ.get("DATABASE_URL") or "sqlite:///db.sqlite3"
 
-# Safety: en produccion (no DEBUG), exigir DATABASE_URL apuntando a Postgres.
-# SQLite no funciona en Vercel (filesystem read-only en runtime),
-# asi que evitamos que las migraciones se ejecuten contra SQLite
-# durante el build y luego fallen al primer request.
-if not DEBUG and not DATABASE_URL.startswith(("postgres://", "postgresql://")):
-    from django.core.exceptions import ImproperlyConfigured
-
-    raise ImproperlyConfigured(
-        "DATABASE_URL debe estar configurada apuntando a Postgres en produccion. "
-        "En Vercel: Settings > Environment Variables > DATABASE_URL."
-    )
-
 if DATABASE_URL.startswith("postgres://") or DATABASE_URL.startswith("postgresql://"):
     from urllib.parse import urlparse
     url = urlparse(DATABASE_URL)
