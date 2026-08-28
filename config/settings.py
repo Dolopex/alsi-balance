@@ -47,7 +47,7 @@ if not DEBUG and SECRET_KEY.startswith("dev-insecure"):
 
 ALLOWED_HOSTS = env_list(
     "DJANGO_ALLOWED_HOSTS",
-    default=["127.0.0.1", "localhost", "testserver", ".up.railway.app", ".railway.app"],
+    default=["127.0.0.1", "localhost", "testserver", ".fly.dev", ".up.railway.app", ".railway.app"],
 )
 
 if DEBUG:
@@ -60,6 +60,7 @@ CSRF_TRUSTED_ORIGINS = env_list(
 if not DEBUG:
     CSRF_TRUSTED_ORIGINS = list(set(
         CSRF_TRUSTED_ORIGINS + [
+            "https://*.fly.dev",
             "https://*.up.railway.app",
             "https://*.railway.app",
         ]
