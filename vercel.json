@@ -21,7 +21,7 @@
       "dest": "api/index.py"
     }
   ],
-  "buildCommand": "python manage.py collectstatic --noinput || true",
+  "buildCommand": "bash -c 'python manage.py migrate --noinput && python manage.py collectstatic --noinput'",
   "env": {
     "DJANGO_SETTINGS_MODULE": "config.settings",
     "PYTHON_UNBUFFERED": "1",
