@@ -26,34 +26,54 @@ Muestra un boton para instalar la app en el dispositivo.
 <script>
 (function() {
     var STORAGE_KEY = 'alsi_pwa_dismissed';
+    var DISMISS_DAYS = 1;  // Re-mostrar el banner cada 1 dia
     var banner = document.getElementById('pwa-install-banner');
     var installBtn = document.getElementById('pwa-install-btn');
     var dismissBtn = document.getElementById('pwa-install-dismiss');
     var deferredPrompt = null;
-    var dismissed = localStorage.getItem(STORAGE_KEY) === '1';
 
-    // Listener SIEMPRE se registra (no early-return).
-    // El banner se muestra/oculta segun el estado dismissed.
+    function isDismissed() {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        try {
+            var data = JSON.parse(raw);
+            var ageMs = Date.now() - data.ts;
+            return ageMs < DISMISS_DAYS * 24 * 60 * 60 * 1000;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function dismiss() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ts: Date.now() }));
+        if (banner) banner.classList.add('hidden');
+    }
+
+    function show() {
+        if (banner && !isDismissed()) {
+            banner.classList.remove('hidden');
+        }
+    }
+
+    // Listener SIEMPRE se registra
     window.addEventListener('beforeinstallprompt', function(e) {
         console.log('[pwa] beforeinstallprompt fired');
         e.preventDefault();
         deferredPrompt = e;
-        if (banner && !dismissed) {
-            banner.classList.remove('hidden');
-        }
+        show();
     });
 
     window.addEventListener('appinstalled', function() {
         console.log('[pwa] app installed');
-        localStorage.setItem(STORAGE_KEY, '1');
-        dismissed = true;
-        if (banner) banner.classList.add('hidden');
+        dismiss();
     });
 
     if (installBtn) {
         installBtn.addEventListener('click', async function() {
             if (!deferredPrompt) {
                 console.warn('[pwa] no deferred prompt available');
+                // Fallback: mostrar instrucciones manuales
+                alert('Tu navegador no soporta instalacion automatica. Usa el menu del navegador:\n\nChrome: Menu > Instalar app\nSafari: Compartir > Añadir a pantalla de inicio');
                 return;
             }
             deferredPrompt.prompt();
@@ -69,11 +89,24 @@ Muestra un boton para instalar la app en el dispositivo.
     }
 
     if (dismissBtn) {
-        dismissBtn.addEventListener('click', function() {
-            localStorage.setItem(STORAGE_KEY, '1');
-            dismissed = true;
-            if (banner) banner.classList.add('hidden');
-        });
+        dismissBtn.addEventListener('click', dismiss);
     }
+
+    // Exponer funcion global para que se pueda probar desde consola
+    window.alsiPWA = {
+        reset: function() {
+            localStorage.removeItem(STORAGE_KEY);
+            console.log('[pwa] localStorage limpiado, recargando...');
+            location.reload();
+        },
+        checkSW: async function() {
+            if (!navigator.serviceWorker) {
+                console.log('[pwa] serviceWorker no soportado');
+                return;
+            }
+            var reg = await navigator.serviceWorker.getRegistration();
+            console.log('[pwa] SW registrado:', !!reg, reg && reg.scope);
+        }
+    };
 })();
 </script>

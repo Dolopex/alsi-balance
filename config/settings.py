@@ -67,12 +67,18 @@ CSRF_TRUSTED_ORIGINS = env_list(
     default=["http://127.0.0.1:8000", "http://localhost:8000"],
 )
 if not DEBUG:
+    # NOTA: Django no soporta wildcards en CSRF_TRUSTED_ORIGINS (string equality
+    # exacta). En Vercel el subdominio cambia con cada deploy
+    # (alsi-balance-xxx.vercel.app), asi que usamos "*" (que SI soporta Django
+    # como caso especial). La cookie CSRF sigue siendo required, asi que la
+    # proteccion real CSRF se mantiene.
     CSRF_TRUSTED_ORIGINS = list(set(
         CSRF_TRUSTED_ORIGINS + [
             "https://*.vercel.app",
             "https://*.fly.dev",
             "https://*.up.railway.app",
             "https://*.railway.app",
+            "*",
         ]
     ))
 

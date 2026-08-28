@@ -46,11 +46,89 @@
                 <dt class="text-[11px] uppercase tracking-wider text-slate-500">Telefono</dt>
                 <dd class="text-slate-800 mt-0.5">{{ user.telefono|default:"—" }}</dd>
             </div>
-            <div class="col-span-2">
-                <dt class="text-[11px] uppercase tracking-wider text-slate-500">Cargo</dt>
-                <dd class="text-slate-800 mt-0.5">{{ user.cargo|default:"—" }}</dd>
-            </div>
+<div class="col-span-2">
+            <dt class="text-[11px] uppercase tracking-wider text-slate-500">Cargo</dt>
+            <dd class="text-slate-800 mt-0.5">{{ user.cargo|default:"—" }}</dd>
+        </div>
         </dl>
     </div>
+
+    <div class="mt-6 bg-white rounded-xl shadow-card border border-slate-200 p-5">
+        <h2 class="font-semibold text-alsi-900 mb-2">Aplicacion movil (PWA)</h2>
+        <p class="text-sm text-slate-600 mb-4">Instala ALSI Balance en tu celular o computador para acceder mas rapido, sin abrir el navegador.</p>
+        <div class="flex flex-wrap gap-2">
+            <button type="button" id="btn-instalar-pwa" class="btn btn-primary text-sm">
+                <span>Instalar aplicacion</span>
+            </button>
+            <button type="button" id="btn-pwa-status" class="btn btn-secondary text-sm">
+                Verificar estado
+            </button>
+        </div>
+        <div id="pwa-status-output" class="mt-4 text-xs text-slate-500 font-mono whitespace-pre-wrap hidden"></div>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        console.log('[pwa] beforeinstallprompt capturado en perfil');
+    });
+
+    var btnInstall = document.getElementById('btn-instalar-pwa');
+    var btnStatus = document.getElementById('btn-pwa-status');
+    var output = document.getElementById('pwa-status-output');
+
+    function showOutput(text) {
+        if (output) {
+            output.classList.remove('hidden');
+            output.textContent = text;
+        }
+    }
+
+    if (btnInstall) {
+        btnInstall.addEventListener('click', async function() {
+            if (!deferredPrompt) {
+                showOutput('No hay prompt de instalacion disponible.\nEsto puede pasar si:\n- Ya instalaste la app\n- Tu navegador no soporta PWA\n- No has interactuado lo suficiente con la pagina\n\nPrueba recargar la pagina e interactuar (clicks) antes de instalar.');
+                return;
+            }
+            deferredPrompt.prompt();
+            try {
+                var choice = await deferredPrompt.userChoice;
+                showOutput('Resultado: ' + choice.outcome);
+            } catch (e) {
+                showOutput('Error: ' + e);
+            }
+            deferredPrompt = null;
+        });
+    }
+
+    if (btnStatus) {
+        btnStatus.addEventListener('click', async function() {
+            var lines = [];
+            lines.push('Service Worker: ' + ('serviceWorker' in navigator ? 'soportado' : 'NO soportado'));
+            if ('serviceWorker' in navigator) {
+                var reg = await navigator.serviceWorker.getRegistration();
+                lines.push('SW registrado: ' + (reg ? 'SI (' + reg.scope + ')' : 'NO'));
+                lines.push('SW activo: ' + (reg && reg.active ? 'SI' : 'NO'));
+            }
+            var manifestLink = document.querySelector('link[rel="manifest"]');
+            lines.push('Manifest link: ' + (manifestLink ? manifestLink.href : 'NO encontrado'));
+            try {
+                var resp = await fetch(manifestLink.href);
+                var manifest = await resp.json();
+                lines.push('Manifest name: ' + manifest.name);
+                lines.push('Manifest icons: ' + (manifest.icons || []).length);
+            } catch (e) {
+                lines.push('Manifest fetch error: ' + e);
+            }
+            lines.push('HTTPS: ' + (location.protocol === 'https:' ? 'SI' : 'NO'));
+            showOutput(lines.join('\n'));
+        });
+    }
+});
+</script>
 {% endblock %}
