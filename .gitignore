@@ -44,3 +44,6 @@ diag_*.py
 
 # Graphify output (knowledge graph)
 graphify-out/
+
+.vercel
+.env*

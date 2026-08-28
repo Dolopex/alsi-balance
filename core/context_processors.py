@@ -1,6 +1,15 @@
 """Context processors compartidos para todo el proyecto."""
 
+from datetime import date
+
 from django.conf import settings
+
+
+MESES_ES = [
+    (1, "Enero"), (2, "Febrero"), (3, "Marzo"), (4, "Abril"),
+    (5, "Mayo"), (6, "Junio"), (7, "Julio"), (8, "Agosto"),
+    (9, "Septiembre"), (10, "Octubre"), (11, "Noviembre"), (12, "Diciembre"),
+]
 
 
 def app_brand(request):
@@ -36,4 +45,19 @@ def push_config(request):
         "push_soportado": (
             "granted" if getattr(request, "user", None) and request.user.is_authenticated else False
         ),
+    }
+
+
+def periodo_selector(request):
+    """Inyecta lista de años/meses disponibles para selectores de export."""
+    hoy = date.today()
+    current_year = hoy.year
+    current_month = hoy.month
+    available_years = list(range(current_year - 5, current_year + 2))
+    available_months = [{"num": n, "name": name} for n, name in MESES_ES]
+    return {
+        "available_years": available_years,
+        "available_months": available_months,
+        "current_year": current_year,
+        "current_month": current_month,
     }

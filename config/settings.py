@@ -165,6 +165,7 @@ TEMPLATES = [
                 "core.context_processors.app_brand",
                 "core.context_processors.gmail_status",
                 "core.context_processors.push_config",
+                "core.context_processors.periodo_selector",
             ],
         },
     },

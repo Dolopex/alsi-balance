@@ -1,0 +1,50 @@
+{% comment %}
+Selector reutilizable para elegir año/mes antes de exportar.
+Uso:
+  {% include "partials/exportar_periodo.html" with action_url=exportar_url form_id="form-mov" %}
+  El form hace GET a action_url con los query params actuales + anio + mes.
+{% endcomment %}
+
+{% now "Y" as current_year %}
+{% now "n" as current_month %}
+
+<div class="bg-slate-50 border border-slate-200 rounded-lg p-4 my-3">
+    <form id="{{ form_id|default:'form-export' }}" method="get" action="{{ action_url }}" class="flex flex-wrap items-end gap-3">
+        {# Preservar query params actuales que no son anio/mes #}
+        {% for key, value in request.GET.items %}
+            {% if key != 'anio' and key != 'mes' and key != 'page' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+
+        <div class="flex flex-col">
+            <label for="anio-{{ form_id|default:'form-export' }}" class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Año</label>
+            <select id="anio-{{ form_id|default:'form-export' }}" name="anio"
+                    class="bg-white border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-alsi-500">
+                {% for y in available_years %}
+                    <option value="{{ y }}" {% if y == selected_year|stringformat:"d" or y == current_year|stringformat:"d" %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="flex flex-col">
+            <label for="mes-{{ form_id|default:'form-export' }}" class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Mes</label>
+            <select id="mes-{{ form_id|default:'form-export' }}" name="mes"
+                    class="bg-white border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-alsi-500">
+                <option value="">Todos</option>
+                {% for m in available_months %}
+                    <option value="{{ m.num }}" {% if m.num == selected_month %}selected{% endif %}>{{ m.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary text-sm">
+            {% include 'partials/icon.html' with name='excel' class='w-4 h-4' %}
+            <span>Descargar mes seleccionado</span>
+        </button>
+
+        {% if label %}
+            <span class="text-xs text-slate-500 ml-2">{{ label }}</span>
+        {% endif %}
+    </form>
+</div>

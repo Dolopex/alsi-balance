@@ -14,19 +14,75 @@
             {% endif %}
         </p>
     </div>
-    <div class="flex flex-wrap gap-2">
+    <div class="flex flex-wrap items-center gap-2">
         {% if user.es_administrador %}
         <a href="{% url 'movimientos:crear' %}" class="btn btn-primary">
             {% include 'partials/icon.html' with name='plus' class='w-4 h-4' %}
             <span>Nuevo movimiento</span>
         </a>
         {% endif %}
-        <a href="{% url 'reportes:exportar_movimientos' %}?{% if request.GET.urlencode %}{{ request.GET.urlencode }}{% endif %}" class="btn btn-success">
+        <button type="button" id="btn-exportar-toggle" class="btn btn-success">
             {% include 'partials/icon.html' with name='excel' class='w-4 h-4' %}
             <span>Exportar Excel</span>
-        </a>
+        </button>
     </div>
 </div>
+
+<div id="exportar-panel" class="hidden bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
+    <div class="flex items-center justify-between mb-2">
+        <div>
+            <div class="text-sm font-semibold text-slate-700">Exportar movimientos a Excel</div>
+            <div class="text-xs text-slate-500">Elegí el año y mes. "Todos" = sin filtro de fecha.</div>
+        </div>
+        <button type="button" id="btn-exportar-cerrar" class="text-slate-400 hover:text-slate-600 text-xl leading-none" aria-label="Cerrar">&times;</button>
+    </div>
+    <form id="form-exportar-mov" method="get" action="{% url 'reportes:exportar_movimientos' %}" class="flex flex-wrap items-end gap-3">
+        {% for key, value in request.GET.items %}
+            {% if key != 'anio' and key != 'mes' and key != 'page' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+        <div class="flex flex-col">
+            <label for="anio-mov" class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Año</label>
+            <select id="anio-mov" name="anio" class="bg-white border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-alsi-500">
+                {% for y in available_years %}
+                    <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex flex-col">
+            <label for="mes-mov" class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Mes</label>
+            <select id="mes-mov" name="mes" class="bg-white border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-alsi-500">
+                <option value="">Todos</option>
+                {% for m in available_months %}
+                    <option value="{{ m.num }}" {% if m.num == current_month %}selected{% endif %}>{{ m.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary text-sm">
+            {% include 'partials/icon.html' with name='excel' class='w-4 h-4' %}
+            <span>Descargar</span>
+        </button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('btn-exportar-toggle');
+    var panel = document.getElementById('exportar-panel');
+    var cerrar = document.getElementById('btn-exportar-cerrar');
+    if (btn && panel) {
+        btn.addEventListener('click', function() {
+            panel.classList.toggle('hidden');
+        });
+    }
+    if (cerrar && panel) {
+        cerrar.addEventListener('click', function() {
+            panel.classList.add('hidden');
+        });
+    }
+});
+</script>
 
 <form method="get" class="bg-white rounded-xl shadow-soft border border-slate-200 p-3 mb-3 text-sm space-y-3">
     <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
