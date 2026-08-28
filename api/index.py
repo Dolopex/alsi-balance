@@ -12,10 +12,20 @@ must be triggered manually via the dashboard.
 import os
 import sys
 
-# Ensure the project root is on the path so 'config' can be imported
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-from config.wsgi import application  # noqa: E402
+# Ensure the project root is on the path so 'config' can be imported.
+# Vercel runs from the project root, but be explicit.
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
 
-# Vercel expects this name
+try:
+    from config.wsgi import application  # noqa: E402
+except Exception as exc:
+    # Surface the error so Vercel logs show what failed at import time.
+    sys.stderr.write(f"[api/index.py] Failed to import Django app: {exc}\n")
+    raise
+
+# Vercel expects the WSGI callable as 'app'
 app = application
