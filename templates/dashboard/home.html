@@ -61,43 +61,43 @@
 </div>
 {% endif %}
 
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-gradient-to-br from-alsi-700 to-alsi-900 text-white rounded-xl shadow-card hover-lift p-5">
-        <div class="flex items-center justify-between mb-2">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+    <div class="min-w-0 bg-gradient-to-br from-alsi-700 to-alsi-900 text-white rounded-xl shadow-card hover-lift p-4 md:p-5">
+        <div class="flex items-center justify-between mb-2 gap-2">
             <div class="text-[11px] uppercase tracking-wider text-alsi-100/80">Saldo actual</div>
-            {% include 'partials/icon.html' with name='wallet' class='w-5 h-5 text-alsi-200' %}
+            {% include 'partials/icon.html' with name='wallet' class='w-5 h-5 text-alsi-200 flex-shrink-0' %}
         </div>
-        <div class="text-2xl md:text-3xl font-bold tracking-tight">${{ saldo_total|moneda }}</div>
-        <div class="text-[11px] text-alsi-100/70 mt-2 flex items-center gap-1">
-            <span>Inicial: ${{ saldo_inicial|moneda }}</span>
+        <div class="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight break-words">${{ saldo_total|moneda }}</div>
+        <div class="text-[11px] text-alsi-100/70 mt-2 break-words">
+            Inicial: ${{ saldo_inicial|moneda }}
         </div>
     </div>
-    <div class="bg-white rounded-xl shadow-card border border-slate-200 hover-lift p-5">
-        <div class="flex items-center justify-between mb-2">
+    <div class="min-w-0 bg-white rounded-xl shadow-card border border-slate-200 hover-lift p-4 md:p-5">
+        <div class="flex items-center justify-between mb-2 gap-2">
             <div class="text-[11px] uppercase tracking-wider text-slate-500">Ingresos</div>
-            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
                 {% include 'partials/icon.html' with name='trend-up' class='w-4 h-4' %}
             </div>
         </div>
-        <div class="text-2xl md:text-3xl font-bold text-emerald-700 tracking-tight">${{ totales.ingresos|moneda }}</div>
+        <div class="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold text-emerald-700 tracking-tight break-words">${{ totales.ingresos|moneda }}</div>
     </div>
-    <div class="bg-white rounded-xl shadow-card border border-slate-200 hover-lift p-5">
-        <div class="flex items-center justify-between mb-2">
+    <div class="min-w-0 bg-white rounded-xl shadow-card border border-slate-200 hover-lift p-4 md:p-5">
+        <div class="flex items-center justify-between mb-2 gap-2">
             <div class="text-[11px] uppercase tracking-wider text-slate-500">Egresos</div>
-            <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600">
+            <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600 flex-shrink-0">
                 {% include 'partials/icon.html' with name='trend-down' class='w-4 h-4' %}
             </div>
         </div>
-        <div class="text-2xl md:text-3xl font-bold text-rose-700 tracking-tight">${{ totales.egresos|moneda }}</div>
+        <div class="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold text-rose-700 tracking-tight break-words">${{ totales.egresos|moneda }}</div>
     </div>
-    <div class="bg-white rounded-xl shadow-card border border-slate-200 hover-lift p-5">
-        <div class="flex items-center justify-between mb-2">
+    <div class="min-w-0 bg-white rounded-xl shadow-card border border-slate-200 hover-lift p-4 md:p-5">
+        <div class="flex items-center justify-between mb-2 gap-2">
             <div class="text-[11px] uppercase tracking-wider text-slate-500">Balance</div>
-            <div class="w-8 h-8 rounded-lg {% if totales.balance >= 0 %}bg-alsi-50{% else %}bg-rose-50{% endif %} flex items-center justify-center {% if totales.balance >= 0 %}text-alsi-600{% else %}text-rose-600{% endif %}">
+            <div class="w-8 h-8 rounded-lg {% if totales.balance >= 0 %}bg-alsi-50{% else %}bg-rose-50{% endif %} flex items-center justify-center {% if totales.balance >= 0 %}text-alsi-600{% else %}text-rose-600{% endif %} flex-shrink-0">
                 {% include 'partials/icon.html' with name='scale' class='w-4 h-4' %}
             </div>
         </div>
-        <div class="text-2xl md:text-3xl font-bold tracking-tight {% if totales.balance >= 0 %}text-alsi-700{% else %}text-rose-700{% endif %}">
+        <div class="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight break-words {% if totales.balance >= 0 %}text-alsi-700{% else %}text-rose-700{% endif %}">
             {% if totales.balance >= 0 %}+{% else %}-{% endif %}${{ totales.balance|abs_valor|moneda }}
         </div>
     </div>

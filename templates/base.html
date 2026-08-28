@@ -61,6 +61,15 @@
         }
         .alsi-sidebar {
             display: none;
+            position: fixed;
+            top: 64px; left: 0; right: 0; bottom: 0;
+            background-color: white;
+            overflow-y: auto;
+            z-index: 40;
+        }
+        /* Cuando el JS agrega .open, mostrar el sidebar (en mobile) */
+        .alsi-sidebar.open {
+            display: block;
         }
         .alsi-main {
             padding: 32px 16px 32px 16px;
@@ -86,12 +95,9 @@
         @media (min-width: 768px) {
             .alsi-sidebar {
                 display: block;
-                position: fixed;
-                top: 64px; left: 0; bottom: 0;
                 width: 256px;
-                background-color: white;
+                right: auto;
                 border-right: 1px solid #e2e8f0;
-                overflow-y: auto;
                 z-index: 30;
             }
             body.auth .alsi-main {
@@ -132,15 +138,15 @@
     {% include 'partials/push_subscribe.html' %}
 {% endif %}
 <script>
-  // Menu hamburguesa: toggle clase hidden en #sidebar al hacer click.
-  // Se registra en DOMContentLoaded para asegurar que el sidebar
-  // (incluido despues del navbar) ya esta en el DOM.
+  // Menu hamburguesa: toggle clase .open en #sidebar al hacer click.
+  // La clase .open (definida en el <style> arriba) tiene mayor
+  // especificidad que .alsi-sidebar y muestra el sidebar en mobile.
   document.addEventListener('DOMContentLoaded', function () {
     var btn = document.getElementById('mobile-menu-btn');
     var sidebar = document.getElementById('sidebar');
     if (btn && sidebar) {
       btn.addEventListener('click', function () {
-        sidebar.classList.toggle('hidden');
+        sidebar.classList.toggle('open');
       });
     }
   });
