@@ -131,5 +131,19 @@
 {% if user.is_authenticated %}
     {% include 'partials/push_subscribe.html' %}
 {% endif %}
+<script>
+  // Menu hamburguesa: toggle clase hidden en #sidebar al hacer click.
+  // Se registra en DOMContentLoaded para asegurar que el sidebar
+  // (incluido despues del navbar) ya esta en el DOM.
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('mobile-menu-btn');
+    var sidebar = document.getElementById('sidebar');
+    if (btn && sidebar) {
+      btn.addEventListener('click', function () {
+        sidebar.classList.toggle('hidden');
+      });
+    }
+  });
+</script>
 </body>
 </html>

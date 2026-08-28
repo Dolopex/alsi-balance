@@ -12,6 +12,8 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from usuarios.permissions import administrador_required
+
 from .services import (
     construir_flow_oauth,
     desconectar as svc_desconectar,
@@ -24,7 +26,7 @@ from .services import (
 log = logging.getLogger(__name__)
 
 
-@login_required
+@administrador_required
 def conectar(request):
     if not settings.GOOGLE_OAUTH_CLIENT_ID:
         messages.error(
@@ -42,7 +44,7 @@ def conectar(request):
     return redirect(auth_url)
 
 
-@login_required
+@administrador_required
 def callback(request):
     state = request.session.get("gmail_oauth_state")
     flow = construir_flow_oauth(state=state)
@@ -64,14 +66,14 @@ def callback(request):
     return redirect("dashboard:home")
 
 
-@login_required
+@administrador_required
 def desconectar(request):
     svc_desconectar()
     messages.success(request, "Gmail desconectado.")
     return redirect("dashboard:home")
 
 
-@login_required
+@administrador_required
 def sincronizar(request):
     metricas = sincronizar_correos()
     if metricas.get("msg"):
@@ -84,7 +86,7 @@ def sincronizar(request):
     return redirect("dashboard:home")
 
 
-@login_required
+@administrador_required
 def estado(request):
     config = obtener_configuracion()
     data = {
@@ -98,16 +100,12 @@ def estado(request):
     return JsonResponse(data)
 
 
-@login_required
+@administrador_required
 def debug_correos(request):
     """Lista los ultimos correos de Gmail (no crea movimientos).
 
     Util para depurar por que un correo no se esta reconociendo.
-    Solo accesible para administradores.
     """
-    if not request.user.es_administrador:
-        return JsonResponse({"error": "Solo administrador"}, status=403)
-
     from gmail_integration.models import EmailProcesado
     limite = int(request.GET.get("limite", 20))
 

@@ -31,15 +31,9 @@
             {% else %}
                 <a href="{% url 'usuarios:login' %}" class="btn btn-secondary">Iniciar sesion</a>
             {% endif %}
-            <button id="mobile-menu-btn" class="md:hidden text-white p-2 rounded hover:bg-alsi-700" aria-label="Abrir menu">
+            <button id="mobile-menu-btn" type="button" class="md:hidden text-white p-2 rounded hover:bg-alsi-700" aria-label="Abrir menu">
                 {% include 'partials/icon.html' with name='menu' class='w-6 h-6' %}
             </button>
         </div>
     </div>
 </nav>
-
-<script>
-  document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
-    document.getElementById('sidebar')?.classList.toggle('hidden');
-  });
-</script>
