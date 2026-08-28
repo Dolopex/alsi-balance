@@ -130,11 +130,14 @@ def _parsear_fecha(texto: str) -> Optional[datetime]:
         return None
     texto = texto.strip()
     formatos = (
-        "%d/%m/%Y",
-        "%d-%m-%Y",
-        "%Y-%m-%d",
-        "%d de %B de %Y",
-        "%d %B %Y",
+        "%d/%m/%Y",       # 03/08/2026
+        "%d-%m-%Y",       # 03-08-2026
+        "%Y-%m-%d",       # 2026-08-03 (ISO)
+        "%Y/%m/%d",       # 2026/08/03 (Bancolombia)
+        "%d/%m/%y",       # 03/08/26 (corto)
+        "%d-%m-%y",       # 03-08-26 (corto)
+        "%d de %B de %Y",  # 3 de agosto de 2026
+        "%d %B %Y",        # 3 agosto 2026
     )
     meses_es = {
         "enero": "January", "febrero": "February", "marzo": "March",
@@ -332,9 +335,11 @@ def _parsear_formato_estandar(texto: str) -> Optional[MovimientoParseado]:
         # Buscar fecha dentro de los 200 caracteres DESPUES del valor
         ventana = texto_sin_urls[max(0, idx_valor):idx_valor + 200] if idx_valor >= 0 else texto_sin_urls
         for patron in [
-            r"(\d{1,2}/\d{1,2}/\d{4})",
-            r"(\d{4}/\d{1,2}/\d{1,2})",
-            r"(\d{1,2}-\d{1,2}-\d{4})",
+            r"(\d{1,2}/\d{1,2}/\d{4})",     # DD/MM/YYYY
+            r"(\d{4}/\d{1,2}/\d{1,2})",     # YYYY/MM/DD
+            r"(\d{1,2}-\d{1,2}-\d{4})",     # DD-MM-YYYY
+            r"(\d{1,2}/\d{1,2}/\d{2})",     # DD/MM/YY (corto)
+            r"(\d{1,2}-\d{1,2}-\d{2})",     # DD-MM-YY (corto)
         ]:
             m = re.search(patron, ventana)
             if m:
@@ -346,8 +351,11 @@ def _parsear_formato_estandar(texto: str) -> Optional[MovimientoParseado]:
     if fecha is None:
         for patron in [
             r"(\d{1,2}/\d{1,2}/\d{4})",
+            r"(\d{4}/\d{1,2}/\d{1,2})",
             r"(\d{1,2}-\d{1,2}-\d{4})",
             r"(\d{4}-\d{2}-\d{2})",
+            r"(\d{1,2}/\d{1,2}/\d{2})",
+            r"(\d{1,2}-\d{1,2}-\d{2})",
         ]:
             m = re.search(patron, texto_sin_urls)
             if m:
