@@ -46,13 +46,13 @@
         <button type="button" id="btn-exportar-periodo-cerrar" class="text-slate-400 hover:text-slate-600 text-xl leading-none" aria-label="Cerrar">&times;</button>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <form method="get" action="{% url 'reportes:exportar_movimientos' %}" class="bg-white border border-slate-200 rounded-lg p-3 flex flex-wrap items-end gap-2">
+        <form method="get" action="{% url 'reportes:exportar_movimientos' %}" class="bg-white border border-slate-200 rounded-lg p-3 flex flex-wrap items-end gap-2 form-export" data-form="mov">
             <input type="hidden" name="rango" value="{{ rango_activo }}">
             <input type="hidden" name="desde" value="{{ fecha_desde|date:'Y-m-d' }}">
             <input type="hidden" name="hasta" value="{{ fecha_hasta|date:'Y-m-d' }}">
             <div class="flex flex-col flex-1">
                 <label class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Año</label>
-                <select name="anio" class="bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
+                <select name="anio" class="anio-select bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
                     {% for y in available_years %}
                         <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
@@ -60,10 +60,10 @@
             </div>
             <div class="flex flex-col flex-1">
                 <label class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Mes</label>
-                <select name="mes" class="bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
+                <select name="mes" class="mes-select bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
                     <option value="">Todos</option>
                     {% for m in available_months %}
-                        <option value="{{ m.num }}" {% if m.num == current_month %}selected{% endif %}>{{ m.name }}</option>
+                        <option value="{{ m.num }}" data-month-num="{{ m.num }}" {% if m.num == current_month %}selected{% endif %}>{{ m.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -72,10 +72,10 @@
                 <span>Movimientos</span>
             </button>
         </form>
-        <form method="get" action="{% url 'reportes:exportar_ingresos' %}" class="bg-white border border-emerald-200 rounded-lg p-3 flex flex-wrap items-end gap-2">
+        <form method="get" action="{% url 'reportes:exportar_ingresos' %}" class="bg-white border border-emerald-200 rounded-lg p-3 flex flex-wrap items-end gap-2 form-export" data-form="ing">
             <div class="flex flex-col flex-1">
                 <label class="text-[11px] uppercase tracking-wider text-emerald-700 font-semibold mb-1">Año</label>
-                <select name="anio" class="bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
+                <select name="anio" class="anio-select bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
                     {% for y in available_years %}
                         <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
@@ -83,10 +83,10 @@
             </div>
             <div class="flex flex-col flex-1">
                 <label class="text-[11px] uppercase tracking-wider text-emerald-700 font-semibold mb-1">Mes</label>
-                <select name="mes" class="bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
+                <select name="mes" class="mes-select bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
                     <option value="">Todos</option>
                     {% for m in available_months %}
-                        <option value="{{ m.num }}" {% if m.num == current_month %}selected{% endif %}>{{ m.name }}</option>
+                        <option value="{{ m.num }}" data-month-num="{{ m.num }}" {% if m.num == current_month %}selected{% endif %}>{{ m.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -95,10 +95,10 @@
                 <span>Ingresos</span>
             </button>
         </form>
-        <form method="get" action="{% url 'reportes:exportar_egresos' %}" class="bg-white border border-rose-200 rounded-lg p-3 flex flex-wrap items-end gap-2 md:col-span-2">
+        <form method="get" action="{% url 'reportes:exportar_egresos' %}" class="bg-white border border-rose-200 rounded-lg p-3 flex flex-wrap items-end gap-2 md:col-span-2 form-export" data-form="egr">
             <div class="flex flex-col flex-1">
                 <label class="text-[11px] uppercase tracking-wider text-rose-700 font-semibold mb-1">Año</label>
-                <select name="anio" class="bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
+                <select name="anio" class="anio-select bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
                     {% for y in available_years %}
                         <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
@@ -106,10 +106,10 @@
             </div>
             <div class="flex flex-col flex-1">
                 <label class="text-[11px] uppercase tracking-wider text-rose-700 font-semibold mb-1">Mes</label>
-                <select name="mes" class="bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
+                <select name="mes" class="mes-select bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm">
                     <option value="">Todos</option>
                     {% for m in available_months %}
-                        <option value="{{ m.num }}" {% if m.num == current_month %}selected{% endif %}>{{ m.name }}</option>
+                        <option value="{{ m.num }}" data-month-num="{{ m.num }}" {% if m.num == current_month %}selected{% endif %}>{{ m.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -122,21 +122,53 @@
 </div>
 
 <script>
+// Filtrar meses segun el anio seleccionado.
+// Para anio actual: solo hasta current_month. Para anios pasados: 12 meses.
 document.addEventListener('DOMContentLoaded', function() {
+    var currentYear = {{ current_year|default:2026 }};
+    var currentMonth = {{ current_month|default:1 }};
+
+    function updateMonths(anioSelect) {
+        var form = anioSelect.closest('.form-export');
+        if (!form) return;
+        var mesSelect = form.querySelector('.mes-select');
+        if (!mesSelect) return;
+        var anio = parseInt(anioSelect.value, 10);
+        // Guardar valor actual para intentar mantenerlo
+        var prevValue = mesSelect.value;
+        // Habilitar/deshabilitar opciones segun anio
+        var options = mesSelect.querySelectorAll('option[data-month-num]');
+        options.forEach(function(opt) {
+            var mes = parseInt(opt.getAttribute('data-month-num'), 10);
+            if (anio === currentYear) {
+                opt.disabled = mes > currentMonth;
+            } else if (anio < currentYear) {
+                opt.disabled = false;
+            } else {
+                opt.disabled = true;
+            }
+        });
+        // Si el mes seleccionado quedo deshabilitado, resetear a "Todos"
+        var selectedOpt = mesSelect.querySelector('option[value="' + prevValue + '"]');
+        if (selectedOpt && selectedOpt.disabled) {
+            mesSelect.value = '';
+        }
+    }
+
+    document.querySelectorAll('.anio-select').forEach(function(sel) {
+        updateMonths(sel);
+        sel.addEventListener('change', function() { updateMonths(sel); });
+    });
+});
+
+// Toggle del panel (existente)
+(function() {
     var btn = document.getElementById('btn-exportar-periodo-toggle');
     var panel = document.getElementById('exportar-periodo-panel');
     var cerrar = document.getElementById('btn-exportar-periodo-cerrar');
-    if (btn && panel) {
-        btn.addEventListener('click', function() {
-            panel.classList.toggle('hidden');
-        });
-    }
-    if (cerrar && panel) {
-        cerrar.addEventListener('click', function() {
-            panel.classList.add('hidden');
-        });
-    }
-});
+    if (btn && panel) btn.addEventListener('click', function() { panel.classList.toggle('hidden'); });
+    if (cerrar && panel) cerrar.addEventListener('click', function() { panel.classList.add('hidden'); });
+})();
 </script>
 
 <div class="bg-white rounded-xl shadow-card border border-slate-200 p-6 mb-6 animate-fade">

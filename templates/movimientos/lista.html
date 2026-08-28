@@ -36,7 +36,7 @@
         </div>
         <button type="button" id="btn-exportar-cerrar" class="text-slate-400 hover:text-slate-600 text-xl leading-none" aria-label="Cerrar">&times;</button>
     </div>
-    <form id="form-exportar-mov" method="get" action="{% url 'reportes:exportar_movimientos' %}" class="flex flex-wrap items-end gap-3">
+    <form id="form-exportar-mov" method="get" action="{% url 'reportes:exportar_movimientos' %}" class="flex flex-wrap items-end gap-3 form-export" data-form="mov-list">
         {% for key, value in request.GET.items %}
             {% if key != 'anio' and key != 'mes' and key != 'page' %}
                 <input type="hidden" name="{{ key }}" value="{{ value }}">
@@ -44,7 +44,7 @@
         {% endfor %}
         <div class="flex flex-col">
             <label for="anio-mov" class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Año</label>
-            <select id="anio-mov" name="anio" class="bg-white border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-alsi-500">
+            <select id="anio-mov" name="anio" class="anio-select bg-white border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-alsi-500">
                 {% for y in available_years %}
                     <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
                 {% endfor %}
@@ -52,10 +52,10 @@
         </div>
         <div class="flex flex-col">
             <label for="mes-mov" class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Mes</label>
-            <select id="mes-mov" name="mes" class="bg-white border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-alsi-500">
+            <select id="mes-mov" name="mes" class="mes-select bg-white border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-alsi-500">
                 <option value="">Todos</option>
                 {% for m in available_months %}
-                    <option value="{{ m.num }}" {% if m.num == current_month %}selected{% endif %}>{{ m.name }}</option>
+                    <option value="{{ m.num }}" data-month-num="{{ m.num }}" {% if m.num == current_month %}selected{% endif %}>{{ m.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -81,6 +81,40 @@ document.addEventListener('DOMContentLoaded', function() {
             panel.classList.add('hidden');
         });
     }
+
+    // Filtrar meses segun anio seleccionado.
+    // Para anio actual: solo hasta current_month. Para anios pasados: 12 meses.
+    var currentYear = {{ current_year|default:2026 }};
+    var currentMonth = {{ current_month|default:1 }};
+
+    function updateMonths(anioSelect) {
+        var form = anioSelect.closest('.form-export');
+        if (!form) return;
+        var mesSelect = form.querySelector('.mes-select');
+        if (!mesSelect) return;
+        var anio = parseInt(anioSelect.value, 10);
+        var prevValue = mesSelect.value;
+        var options = mesSelect.querySelectorAll('option[data-month-num]');
+        options.forEach(function(opt) {
+            var mes = parseInt(opt.getAttribute('data-month-num'), 10);
+            if (anio === currentYear) {
+                opt.disabled = mes > currentMonth;
+            } else if (anio < currentYear) {
+                opt.disabled = false;
+            } else {
+                opt.disabled = true;
+            }
+        });
+        var selectedOpt = mesSelect.querySelector('option[value="' + prevValue + '"]');
+        if (selectedOpt && selectedOpt.disabled) {
+            mesSelect.value = '';
+        }
+    }
+
+    document.querySelectorAll('.anio-select').forEach(function(sel) {
+        updateMonths(sel);
+        sel.addEventListener('change', function() { updateMonths(sel); });
+    });
 });
 </script>
 

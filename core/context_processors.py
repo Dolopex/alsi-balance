@@ -49,12 +49,27 @@ def push_config(request):
 
 
 def periodo_selector(request):
-    """Inyecta lista de años/meses disponibles para selectores de export."""
+    """Inyecta listas de años/meses para los selectores de export.
+
+    - `available_years`: solo hasta el año actual (no futuros)
+    - `available_months`: 12 meses (el template filtra segun año)
+    - `current_year` y `current_month`: para que el template sepa hasta
+      donde mostrar. Para años pasados muestra los 12 meses; para el año
+      actual muestra solo hasta `current_month`.
+    """
+    from movimientos.models import Movimiento
+
     hoy = date.today()
     current_year = hoy.year
     current_month = hoy.month
-    available_years = list(range(current_year - 5, current_year + 2))
+
+    oldest_year_qs = Movimiento.objects.order_by("fecha").values_list("fecha", flat=True).first()
+    oldest_year = oldest_year_qs.year if oldest_year_qs else current_year - 5
+    min_year = min(oldest_year, current_year - 5)
+
+    available_years = list(range(min_year, current_year + 1))
     available_months = [{"num": n, "name": name} for n, name in MESES_ES]
+
     return {
         "available_years": available_years,
         "available_months": available_months,
