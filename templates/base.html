@@ -155,9 +155,17 @@
 {% endif %}
 {% include 'partials/pwa_install.html' %}
 <script>
+  // Registrar Service Worker siempre (necesario para PWA y push).
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then(function (reg) { console.log('[sw] registrado scope=', reg.scope); })
+        .catch(function (err) { console.error('[sw] error registro:', err); });
+    });
+  }
+</script>
+<script>
   // Menu hamburguesa: toggle clase .open en #sidebar al hacer click.
-  // La clase .open (definida en el <style> arriba) tiene mayor
-  // especificidad que .alsi-sidebar y muestra el sidebar en mobile.
   document.addEventListener('DOMContentLoaded', function () {
     var btn = document.getElementById('mobile-menu-btn');
     var sidebar = document.getElementById('sidebar');

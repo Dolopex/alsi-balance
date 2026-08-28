@@ -59,12 +59,10 @@
     }
     logDiag('Permission: ' + Notification.permission);
 
+    // El Service Worker ya esta registrado desde base.html, solo esperamos que este listo
     try {
-      logDiag('Registrando /sw.js con scope /...');
-      const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-      logDiag('SW registrado. Scope: ' + reg.scope);
-      await navigator.serviceWorker.ready;
-      logDiag('SW activo');
+      const reg = await navigator.serviceWorker.ready;
+      logDiag('SW listo. Scope: ' + reg.scope);
 
       let sub = await reg.pushManager.getSubscription();
       if (!sub) {

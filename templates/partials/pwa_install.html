@@ -30,25 +30,39 @@ Muestra un boton para instalar la app en el dispositivo.
     var installBtn = document.getElementById('pwa-install-btn');
     var dismissBtn = document.getElementById('pwa-install-dismiss');
     var deferredPrompt = null;
+    var dismissed = localStorage.getItem(STORAGE_KEY) === '1';
 
-    // Verificar si el usuario ya descarto el banner recientemente
-    if (localStorage.getItem(STORAGE_KEY)) {
-        return;
-    }
-
+    // Listener SIEMPRE se registra (no early-return).
+    // El banner se muestra/oculta segun el estado dismissed.
     window.addEventListener('beforeinstallprompt', function(e) {
+        console.log('[pwa] beforeinstallprompt fired');
         e.preventDefault();
         deferredPrompt = e;
-        if (banner) banner.classList.remove('hidden');
+        if (banner && !dismissed) {
+            banner.classList.remove('hidden');
+        }
+    });
+
+    window.addEventListener('appinstalled', function() {
+        console.log('[pwa] app installed');
+        localStorage.setItem(STORAGE_KEY, '1');
+        dismissed = true;
+        if (banner) banner.classList.add('hidden');
     });
 
     if (installBtn) {
         installBtn.addEventListener('click', async function() {
-            if (!deferredPrompt) return;
+            if (!deferredPrompt) {
+                console.warn('[pwa] no deferred prompt available');
+                return;
+            }
             deferredPrompt.prompt();
             try {
-                await deferredPrompt.userChoice;
-            } catch (e) {}
+                var choice = await deferredPrompt.userChoice;
+                console.log('[pwa] user choice:', choice.outcome);
+            } catch (e) {
+                console.error('[pwa] prompt error:', e);
+            }
             deferredPrompt = null;
             if (banner) banner.classList.add('hidden');
         });
@@ -57,14 +71,9 @@ Muestra un boton para instalar la app en el dispositivo.
     if (dismissBtn) {
         dismissBtn.addEventListener('click', function() {
             localStorage.setItem(STORAGE_KEY, '1');
+            dismissed = true;
             if (banner) banner.classList.add('hidden');
         });
     }
-
-    // Ocultar automaticamente si se instala la app
-    window.addEventListener('appinstalled', function() {
-        localStorage.setItem(STORAGE_KEY, '1');
-        if (banner) banner.classList.add('hidden');
-    });
 })();
 </script>
