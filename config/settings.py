@@ -49,11 +49,7 @@ ALLOWED_HOSTS = env_list(
     "DJANGO_ALLOWED_HOSTS",
     default=[
         "127.0.0.1", "localhost", "testserver",
-        ".fly.dev", ".up.railway.app", ".railway.app",
-        # Fly.io usa IPs privadas RFC1918 (172.16.0.0/12) para su red interna.
-        # Las requests internas (health checks, load balancer) llevan
-        # la IP de la maquina como Host. Sin esto, Django las rechaza.
-        "172.19.25.202",
+        ".vercel.app", ".fly.dev", ".up.railway.app", ".railway.app",
     ],
 )
 
@@ -67,6 +63,7 @@ CSRF_TRUSTED_ORIGINS = env_list(
 if not DEBUG:
     CSRF_TRUSTED_ORIGINS = list(set(
         CSRF_TRUSTED_ORIGINS + [
+            "https://*.vercel.app",
             "https://*.fly.dev",
             "https://*.up.railway.app",
             "https://*.railway.app",
