@@ -31,16 +31,7 @@ primary_region = "iad"
   [[services.tcp_checks]]
     interval = "15s"
     timeout = "2s"
-    grace_period = "10s"
-
-  [[services.http_checks]]
-    interval = "30s"
-    timeout = "5s"
-    grace_period = "60s"
-    method = "get"
-    path = "/healthz/"
-    protocol = "http"
-    tls_skip_verify = false
+    grace_period = "30s"
 
 [[vm]]
   cpu_kind = "shared"
