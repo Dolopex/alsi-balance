@@ -1,0 +1,196 @@
+/* ALSI BALANCE - estilos base */
+
+/* Tipografia --------------------------------------------------- */
+:root {
+  --alsi-900: #05182e;
+  --alsi-800: #08274a;
+  --alsi-700: #0b3666;
+  --alsi-500: #1f5fa8;
+  --alsi-100: #d4e2f3;
+  --alsi-50:  #eef4fb;
+}
+
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Tablas */
+table th, table td { vertical-align: middle; }
+
+/* Scrollbar discreta */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+*::-webkit-scrollbar-thumb:hover { background: #94a3b8; background-clip: padding-box; border: 2px solid transparent; }
+
+/* Focus visible accesible */
+*:focus-visible {
+  outline: 2px solid var(--alsi-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible,
+button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--alsi-500);
+  outline-offset: 2px;
+}
+
+/* Numeros tabulares */
+.font-mono { font-variant-numeric: tabular-nums; }
+
+/* Animaciones suaves */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-fade  { animation: fade-in 0.25s ease-out; }
+.animate-slide { animation: slide-in 0.25s ease-out; }
+
+/* Transiciones consistentes */
+button, a, .card, input, select, textarea {
+  transition: all 0.15s ease-out;
+}
+
+/* Inputs */
+form input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=submit]):not([type=button]),
+form select,
+form textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 14px;
+  background: white;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+form input:focus,
+form select:focus,
+form textarea:focus {
+  outline: none;
+  border-color: var(--alsi-500);
+  box-shadow: 0 0 0 3px rgba(31, 95, 168, 0.12);
+}
+form input[type=color] {
+  height: 42px;
+  padding: 3px;
+  cursor: pointer;
+}
+
+/* Hover lift en cards clicables */
+.hover-lift {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -10px rgba(8, 39, 74, 0.25);
+}
+
+/* Subtle gradient bg */
+.bg-gradient-alsi {
+  background: linear-gradient(135deg, #0b3666 0%, #154a85 50%, #1f5fa8 100%);
+}
+
+/* Tabla zebra sutil */
+.table-zebra tbody tr:nth-child(even) { background: #f8fafc; }
+.table-zebra tbody tr:hover { background: #eef4fb; }
+
+/* Botones estilo shadcn-like */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--alsi-700);
+  color: white;
+}
+.btn-primary:hover { background: var(--alsi-500); }
+.btn-secondary {
+  background: white;
+  color: var(--alsi-700);
+  border-color: var(--alsi-100);
+}
+.btn-secondary:hover { background: var(--alsi-50); }
+.btn-success { background: #059669; color: white; }
+.btn-success:hover { background: #047857; }
+.btn-danger { background: #dc2626; color: white; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-ghost { background: transparent; color: var(--alsi-700); }
+.btn-ghost:hover { background: var(--alsi-50); }
+.btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8125rem; }
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  letter-spacing: 0.025em;
+}
+
+/* Field labels */
+label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.01em;
+}
+
+/* Print friendly */
+@media print {
+  nav, aside, footer, .no-print { display: none !important; }
+  main { padding: 0 !important; }
+}
+
+/* App sidebar - CSS puro, no depende de Tailwind */
+.app-sidebar {
+  display: none;
+}
+@media (min-width: 768px) {
+  .app-sidebar {
+    display: block;
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    background-color: white;
+    border-right: 1px solid #e2e8f0;
+    overflow-y: auto;
+    z-index: 30;
+  }
+}
+
+.app-main-layout {
+  padding-left: 0;
+  min-height: calc(100vh - 8rem);
+}
+@media (min-width: 768px) {
+  .app-main-layout {
+    padding-left: 16rem;
+  }
+}
+
+/* Responsive tables */
+@media (max-width: 768px) {
+  table { font-size: 13px; }
+}

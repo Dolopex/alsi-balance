@@ -1,0 +1,50 @@
+<aside id="sidebar" class="alsi-sidebar">
+    <nav class="p-4 text-sm">
+        <ul class="space-y-1">
+            <li><a href="{% url 'dashboard:home' %}" class="block px-3 py-2 rounded hover:bg-slate-100 {% if request.resolver_match.namespace == 'dashboard' %}bg-alsi-100 text-alsi-800 font-semibold{% endif %}">Dashboard</a></li>
+            <li><a href="{% url 'movimientos:lista' %}" class="block px-3 py-2 rounded hover:bg-slate-100 {% if request.resolver_match.namespace == 'movimientos' %}bg-alsi-100 text-alsi-800 font-semibold{% endif %}">Movimientos</a></li>
+            {% if user.es_administrador %}
+            <li><a href="{% url 'movimientos:crear' %}" class="block px-3 py-2 pl-8 rounded text-alsi-600 hover:bg-alsi-50 text-sm">+ Nuevo</a></li>
+            {% endif %}
+            <li><a href="{% url 'reportes:reporte' %}" class="block px-3 py-2 rounded hover:bg-slate-100 {% if request.resolver_match.namespace == 'reportes' %}bg-alsi-100 text-alsi-800 font-semibold{% endif %}">Reportes</a></li>
+            <li><a href="{% url 'categorias:lista' %}" class="block px-3 py-2 rounded hover:bg-slate-100 {% if request.resolver_match.namespace == 'categorias' %}bg-alsi-100 text-alsi-800 font-semibold{% endif %}">Categorias</a></li>
+            {% if user.es_administrador %}
+            <li><a href="{% url 'core:configuracion' %}" class="block px-3 py-2 rounded hover:bg-slate-100 {% if request.resolver_match.namespace == 'core' %}bg-alsi-100 text-alsi-800 font-semibold{% endif %}">Saldo inicial</a></li>
+            {% endif %}
+        </ul>
+
+        <ul class="mt-4 pt-4 border-t border-slate-200 space-y-1">
+            <li class="px-3 py-1 text-[10px] uppercase text-slate-400 tracking-wider font-semibold">Gmail</li>
+            {% if gmail_conectado %}
+                <li class="flex items-center gap-2 px-3 py-2 rounded bg-emerald-50 text-emerald-700 text-xs mb-1">
+                    <span class="truncate" title="{{ gmail_email }}">{{ gmail_email|truncatechars:22 }}</span>
+                </li>
+                {% if user.es_administrador %}
+                <li><a href="{% url 'gmail:sincronizar' %}" class="block px-3 py-2 rounded hover:bg-slate-100">Sincronizar</a></li>
+                <li><a href="{% url 'gmail:desconectar' %}" class="block px-3 py-2 rounded text-rose-600 hover:bg-rose-50 text-xs">Desconectar</a></li>
+                {% endif %}
+            {% else %}
+                <li><a href="{% url 'gmail:conectar' %}" class="block px-3 py-2 rounded hover:bg-slate-100">Conectar Gmail</a></li>
+            {% endif %}
+        </ul>
+
+        {% if user.es_administrador %}
+        <ul class="mt-4 pt-4 border-t border-slate-200 space-y-1">
+            <li class="px-3 py-1 text-[10px] uppercase text-slate-400 tracking-wider font-semibold">Admin</li>
+            <li><a href="{% url 'notificaciones:probar' %}" class="block px-3 py-2 rounded hover:bg-slate-100 {% if request.resolver_match.namespace == 'notificaciones' and request.resolver_match.url_name == 'probar' %}bg-alsi-100 text-alsi-800 font-semibold{% endif %}">Probar notificaciones</a></li>
+        </ul>
+        {% endif %}
+    </nav>
+
+    <div class="p-4 border-t border-slate-200 absolute bottom-0 left-0 right-0 bg-white">
+        <a href="{% url 'usuarios:perfil' %}" class="flex items-center gap-3 hover:bg-slate-50 rounded-lg p-2 -m-2">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-alsi-500 to-alsi-700 flex items-center justify-center text-white text-sm font-bold">
+                {{ user.first_name|first|default:user.username|first|upper }}
+            </div>
+            <div class="leading-tight text-xs">
+                <div class="font-semibold text-slate-700">{{ user.get_full_name|default:user.username|truncatechars:18 }}</div>
+                <div class="text-slate-500">{{ user.get_rol_display }}</div>
+            </div>
+        </a>
+    </div>
+</aside>

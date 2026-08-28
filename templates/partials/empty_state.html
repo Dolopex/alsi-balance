@@ -1,0 +1,19 @@
+{% comment %}
+  Estado vacio reutilizable.
+  Uso: {% include 'partials/empty_state.html' with title='...' description='...' icon='wallet' %}
+{% endcomment %}
+<div class="bg-white rounded-lg border border-dashed border-slate-300 p-8 text-center animate-fade">
+    <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-alsi-50 text-alsi-500 mb-3">
+        {% if icon %}{% include 'partials/icon.html' with name=icon class='w-7 h-7' %}{% endif %}
+    </div>
+    <h3 class="text-base font-semibold text-slate-700">{{ title|default:'Sin datos' }}</h3>
+    {% if description %}
+        <p class="text-sm text-slate-500 mt-1 max-w-md mx-auto">{{ description }}</p>
+    {% endif %}
+    {% if action_url %}
+        <a href="{{ action_url }}" class="btn btn-primary mt-4">
+            {% if action_icon %}{% include 'partials/icon.html' with name=action_icon class='w-4 h-4' %}{% endif %}
+            {{ action_label|default:'Crear' }}
+        </a>
+    {% endif %}
+</div>

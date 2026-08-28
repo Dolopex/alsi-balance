@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear cuenta · {{ APP_NAME }}{% endblock %}
+
+{% block auth_content %}
+<div class="w-full max-w-md animate-fade">
+    <div class="bg-white rounded-2xl shadow-pop border border-slate-200 p-8">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-alsi rounded-lg flex items-center justify-center font-extrabold text-white shadow-md">
+                <span class="text-sm tracking-tighter">A</span>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-alsi-900">Crear cuenta</h1>
+                <p class="text-xs text-slate-500">{{ APP_NAME }}</p>
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="bg-rose-50 border-l-4 border-rose-400 text-rose-700 px-3 py-2 rounded-r text-sm mb-4">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="post" class="space-y-3">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label for="id_first_name" class="block text-xs font-semibold text-slate-600 mb-1.5">Nombre</label>
+                    {{ form.first_name }}
+                </div>
+                <div>
+                    <label for="id_last_name" class="block text-xs font-semibold text-slate-600 mb-1.5">Apellido</label>
+                    {{ form.last_name }}
+                </div>
+            </div>
+            <div>
+                <label for="id_username" class="block text-xs font-semibold text-slate-600 mb-1.5">Usuario *</label>
+                {{ form.username }}
+            </div>
+            <div>
+                <label for="id_email" class="block text-xs font-semibold text-slate-600 mb-1.5">Email</label>
+                {{ form.email }}
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label for="id_documento" class="block text-xs font-semibold text-slate-600 mb-1.5">Documento</label>
+                    {{ form.documento }}
+                </div>
+                <div>
+                    <label for="id_telefono" class="block text-xs font-semibold text-slate-600 mb-1.5">Telefono</label>
+                    {{ form.telefono }}
+                </div>
+            </div>
+            <div>
+                <label for="id_cargo" class="block text-xs font-semibold text-slate-600 mb-1.5">Cargo</label>
+                {{ form.cargo }}
+            </div>
+            <div>
+                <label for="id_rol" class="block text-xs font-semibold text-slate-600 mb-1.5">Rol</label>
+                {{ form.rol }}
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label for="id_password1" class="block text-xs font-semibold text-slate-600 mb-1.5">Contrasena *</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}<p class="text-xs text-rose-600 mt-1">{{ form.password1.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="id_password2" class="block text-xs font-semibold text-slate-600 mb-1.5">Confirmar *</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}<p class="text-xs text-rose-600 mt-1">{{ form.password2.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full py-2.5 mt-2 font-semibold">
+                {% include 'partials/icon.html' with name='check' class='w-4 h-4' %}
+                Crear cuenta
+            </button>
+        </form>
+
+        <div class="mt-5 pt-5 border-t border-slate-100 text-center">
+            <p class="text-xs text-slate-500">
+                ¿Ya tienes cuenta?
+                <a href="{% url 'usuarios:login' %}" class="text-alsi-700 hover:text-alsi-800 font-medium">Iniciar sesion</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

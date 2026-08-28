@@ -1,0 +1,22 @@
+{% if messages %}
+<div class="mb-4 space-y-2 animate-fade">
+    {% for message in messages %}
+        <div class="border-l-4 px-4 py-3 rounded-r text-sm flex items-start gap-3 shadow-sm
+            {% if message.tags == 'success' %}bg-emerald-50 border-emerald-400 text-emerald-800
+            {% elif message.tags == 'error' %}bg-rose-50 border-rose-400 text-rose-800
+            {% elif message.tags == 'warning' %}bg-amber-50 border-amber-400 text-amber-800
+            {% else %}bg-blue-50 border-blue-400 text-blue-800{% endif %}">
+            <div class="flex-shrink-0 mt-0.5">
+                {% if message.tags == 'success' %}
+                    {% include 'partials/icon.html' with name='check' class='w-5 h-5' %}
+                {% elif message.tags == 'error' %}
+                    {% include 'partials/icon.html' with name='alert' class='w-5 h-5' %}
+                {% elif message.tags == 'warning' %}
+                    {% include 'partials/icon.html' with name='alert' class='w-5 h-5' %}
+                {% endif %}
+            </div>
+            <div class="flex-1">{{ message }}</div>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}

@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Editar{% else %}Nuevo{% endif %} movimiento · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto animate-fade">
+    <div class="mb-5">
+        <a href="{% url 'movimientos:lista' %}" class="text-sm text-alsi-600 hover:text-alsi-700 font-medium inline-flex items-center gap-1">
+            ← Volver al listado
+        </a>
+        <h1 class="text-2xl font-bold text-alsi-900 tracking-tight mt-1">{% if object %}Editar movimiento{% else %}Nuevo movimiento{% endif %}</h1>
+        <p class="text-sm text-slate-500 mt-0.5">Completa los datos y guarda el registro.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="bg-white rounded-xl shadow-card border border-slate-200 p-6 space-y-5">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="bg-rose-50 border-l-4 border-rose-400 text-rose-700 px-3 py-2 rounded-r text-sm">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Tipo *</label>
+                {{ form.tipo }}
+                {% if form.tipo.errors %}<p class="text-xs text-rose-600 mt-1">{{ form.tipo.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Fecha *</label>
+                {{ form.fecha }}
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Hora</label>
+                {{ form.hora }}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Valor *</label>
+                {{ form.valor }}
+                {% if form.valor.errors %}<p class="text-xs text-rose-600 mt-1">{{ form.valor.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Categoria</label>
+                {{ form.categoria }}
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Concepto</label>
+            {{ form.concepto }}
+        </div>
+
+        <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Descripcion</label>
+            {{ form.descripcion }}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Tercero</label>
+                {{ form.tercero }}
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Referencia</label>
+                {{ form.referencia }}
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Subcategoria</label>
+                {{ form.subcategoria }}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Banco</label>
+                {{ form.banco }}
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Cuenta origen</label>
+                {{ form.cuenta }}
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Saldo despues</label>
+                {{ form.saldo_despues }}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Cuenta destino</label>
+                {{ form.cuenta_destino }}
+                <p class="text-[11px] text-slate-500 mt-1">Para transferencias: cuenta que recibe el dinero.</p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nombre destinatario</label>
+                {{ form.nombre_destinatario }}
+                <p class="text-[11px] text-slate-500 mt-1">A quien va dirigido el pago.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Origen</label>
+                {{ form.origen }}
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Estado conciliacion</label>
+                {{ form.estado_conciliacion }}
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 pt-3 border-t border-slate-100">
+            <button type="submit" class="btn btn-primary">
+                {% include 'partials/icon.html' with name='check' class='w-4 h-4' %}
+                Guardar
+            </button>
+            <a href="{% url 'movimientos:lista' %}" class="btn btn-ghost">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

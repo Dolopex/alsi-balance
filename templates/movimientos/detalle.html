@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load humanize core_extras %}
+
+{% block title %}{{ movimiento.concepto|default:"Movimiento" }} · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto animate-fade">
+    <div class="mb-4">
+        <a href="{% url 'movimientos:lista' %}" class="text-sm text-alsi-600 hover:text-alsi-700 font-medium">← Volver al listado</a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-card border border-slate-200 overflow-hidden">
+        <div class="p-6 {% if movimiento.es_ingreso %}bg-gradient-to-br from-emerald-50 to-white border-b border-emerald-100{% else %}bg-gradient-to-br from-rose-50 to-white border-b border-rose-100{% endif %}">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        {% if movimiento.es_ingreso %}
+                            <span class="badge bg-emerald-100 text-emerald-700">INGRESO</span>
+                        {% else %}
+                            <span class="badge bg-rose-100 text-rose-700">EGRESO</span>
+                        {% endif %}
+                        <span class="text-[11px] uppercase tracking-wider text-slate-500">{{ movimiento.get_origen_display }}</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-slate-900">{{ movimiento.concepto|default:"Movimiento sin concepto" }}</h1>
+                    <p class="text-sm text-slate-600 mt-1 flex items-center gap-2">
+                        {% include 'partials/icon.html' with name='calendar' class='w-4 h-4 text-slate-400' %}
+                        {{ movimiento.fecha|date:"d/m/Y" }}{% if movimiento.hora %} &middot; {{ movimiento.hora|time:"H:i" }}{% endif %}
+                    </p>
+                </div>
+                <div class="text-3xl font-bold font-mono tracking-tight {% if movimiento.es_ingreso %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                    {% if movimiento.es_ingreso %}+{% else %}-{% endif %}${{ movimiento.valor|moneda }}
+                </div>
+                {% if movimiento.hora %}
+                <div class="text-xs text-slate-500 mt-1 font-mono">Hora: {{ movimiento.hora|time:"H:i" }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <dl class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-5 gap-x-6 text-sm">
+            <div class="border-b border-slate-100 pb-3 md:border-0 md:pb-0">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Categoria</dt>
+                <dd class="text-slate-800 font-medium">{{ movimiento.categoria.nombre|default:"—" }}</dd>
+            </div>
+            <div class="border-b border-slate-100 pb-3 md:border-0 md:pb-0">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Subcategoria</dt>
+                <dd class="text-slate-800 font-medium">{{ movimiento.subcategoria|default:"—" }}</dd>
+            </div>
+            <div class="border-b border-slate-100 pb-3 md:border-0 md:pb-0">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Tercero</dt>
+                <dd class="text-slate-800 font-medium">{{ movimiento.tercero|default:"—" }}</dd>
+            </div>
+            <div class="border-b border-slate-100 pb-3 md:border-0 md:pb-0">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Banco</dt>
+                <dd class="text-slate-800 font-medium">{{ movimiento.banco|default:"—" }}</dd>
+            </div>
+            <div class="border-b border-slate-100 pb-3 md:border-0 md:pb-0">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Cuenta origen</dt>
+                <dd class="text-slate-800 font-mono text-xs font-medium">{{ movimiento.cuenta|default:"—" }}</dd>
+            </div>
+            <div class="border-b border-slate-100 pb-3 md:border-0 md:pb-0">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Cuenta destino</dt>
+                <dd class="text-slate-800 font-mono text-xs font-medium">{{ movimiento.cuenta_destino|default:"—" }}</dd>
+            </div>
+            {% if movimiento.nombre_destinatario %}
+            <div class="border-b border-slate-100 pb-3 md:border-0 md:pb-0">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Destinatario</dt>
+                <dd class="text-slate-800 font-medium">{{ movimiento.nombre_destinatario|default:"—" }}</dd>
+            </div>
+            {% endif %}
+            <div class="border-b border-slate-100 pb-3 md:border-0 md:pb-0">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Referencia</dt>
+                <dd class="text-slate-800 font-mono text-xs font-medium">{{ movimiento.referencia|default:"—" }}</dd>
+            </div>
+            <div class="border-b border-slate-100 pb-3 md:border-0 md:pb-0">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Hora</dt>
+                <dd class="text-slate-800 font-mono text-xs font-medium">{% if movimiento.hora %}{{ movimiento.hora|time:"H:i" }}{% else %}—{% endif %}</dd>
+            </div>
+            {% if movimiento.saldo_despues is not None %}
+            <div class="col-span-1 sm:col-span-2 md:col-span-3 bg-alsi-50 rounded-lg p-4 mt-2">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Saldo despues del movimiento</dt>
+                <dd class="text-alsi-800 font-mono text-xl font-bold">${{ movimiento.saldo_despues|moneda }}</dd>
+            </div>
+            {% endif %}
+            {% if movimiento.descripcion %}
+            <div class="col-span-1 sm:col-span-2 md:col-span-3 bg-slate-50 rounded-lg p-4">
+                <dt class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold mb-1">Descripcion</dt>
+                <dd class="text-slate-800 whitespace-pre-wrap leading-relaxed">{{ movimiento.descripcion }}</dd>
+            </div>
+            {% endif %}
+        </dl>
+
+        {% if user.es_administrador %}
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center gap-2">
+            <a href="{% url 'movimientos:editar' movimiento.pk %}" class="btn btn-primary">
+                {% include 'partials/icon.html' with name='edit' class='w-4 h-4' %}
+                Editar
+            </a>
+            <a href="{% url 'movimientos:eliminar' movimiento.pk %}" class="btn btn-ghost text-rose-600 hover:bg-rose-50">
+                {% include 'partials/icon.html' with name='trash' class='w-4 h-4' %}
+                Eliminar
+            </a>
+        </div>
+
+        <form method="post" action="{% url 'movimientos:conciliar' movimiento.pk %}" class="px-6 py-4 bg-white border-t border-slate-200 flex flex-wrap items-center gap-2 text-sm">
+            {% csrf_token %}
+            <span class="text-xs font-semibold text-slate-600 uppercase tracking-wider mr-2">Conciliacion:</span>
+            <button name="estado" value="PENDIENTE" class="btn btn-sm btn-secondary">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span> Pendiente
+            </button>
+            <button name="estado" value="CONCILIADO" class="btn btn-sm btn-secondary">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Conciliado
+            </button>
+            <button name="estado" value="OBSERVADO" class="btn btn-sm btn-secondary">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span> Observado
+            </button>
+        </form>
+        {% else %}
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200">
+            <p class="text-xs text-slate-500 inline-flex items-center gap-2">
+                {% include 'partials/icon.html' with name='shield' class='w-4 h-4 text-slate-400' %}
+                Modo lectura. Solo el administrador puede editar o eliminar movimientos.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

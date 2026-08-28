@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load humanize core_extras pagination %}
+
+{% block title %}Movimientos · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-5 animate-fade">
+    <div>
+        <h1 class="text-2xl font-bold text-alsi-900 tracking-tight">Movimientos</h1>
+        <p class="text-sm text-slate-500 mt-0.5">
+            {{ total_filtrado }} movimiento(s)
+            {% if rango_activo != 'todo' %}
+                en el periodo seleccionado
+            {% endif %}
+        </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        {% if user.es_administrador %}
+        <a href="{% url 'movimientos:crear' %}" class="btn btn-primary">
+            {% include 'partials/icon.html' with name='plus' class='w-4 h-4' %}
+            <span>Nuevo movimiento</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'reportes:exportar_movimientos' %}?{% if request.GET.urlencode %}{{ request.GET.urlencode }}{% endif %}" class="btn btn-success">
+            {% include 'partials/icon.html' with name='excel' class='w-4 h-4' %}
+            <span>Exportar Excel</span>
+        </a>
+    </div>
+</div>
+
+<form method="get" class="bg-white rounded-xl shadow-soft border border-slate-200 p-3 mb-3 text-sm space-y-3">
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-2">
+        <div class="col-span-2 md:col-span-2 relative">
+            <div class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                {% include 'partials/icon.html' with name='search' class='w-4 h-4' %}
+            </div>
+            <input type="text" name="q" value="{{ filtros.q|default:'' }}" placeholder="Buscar concepto, referencia, tercero..." class="pl-9 w-full">
+        </div>
+        <select name="tipo" class="w-full">
+            <option value="">Todos los tipos</option>
+            <option value="INGRESO" {% if filtros.tipo == 'INGRESO' %}selected{% endif %}>Ingresos</option>
+            <option value="EGRESO" {% if filtros.tipo == 'EGRESO' %}selected{% endif %}>Egresos</option>
+        </select>
+        <select name="estado" class="w-full">
+            <option value="">Todos los estados</option>
+            <option value="PENDIENTE" {% if filtros.estado == 'PENDIENTE' %}selected{% endif %}>Pendiente</option>
+            <option value="CONCILIADO" {% if filtros.estado == 'CONCILIADO' %}selected{% endif %}>Conciliado</option>
+            <option value="OBSERVADO" {% if filtros.estado == 'OBSERVADO' %}selected{% endif %}>Observado</option>
+        </select>
+        <select name="categoria" class="w-full">
+            <option value="">Todas las categorias</option>
+            {% for c in categorias %}
+                <option value="{{ c.pk }}" {% if filtros.categoria|stringformat:"s" == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.nombre }}</option>
+            {% endfor %}
+        </select>
+        <div class="flex gap-2 col-span-2 md:col-span-1">
+            <button class="btn btn-primary flex-1">Filtrar</button>
+            <a href="{% url 'movimientos:lista' %}" class="btn btn-secondary flex-1">Limpiar</a>
+        </div>
+    </div>
+
+    <div class="border-t border-slate-100 pt-3">
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Periodo:</span>
+            <div class="flex flex-wrap gap-1">
+                <a href="?{% if filtros.q %}q={{ filtros.q }}&{% endif %}{% if filtros.tipo %}tipo={{ filtros.tipo }}&{% endif %}{% if filtros.estado %}estado={{ filtros.estado }}&{% endif %}{% if filtros.categoria %}categoria={{ filtros.categoria }}&{% endif %}rango=hoy"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if rango_activo == 'hoy' %}bg-alsi-700 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Hoy</a>
+                <a href="?{% if filtros.q %}q={{ filtros.q }}&{% endif %}{% if filtros.tipo %}tipo={{ filtros.tipo }}&{% endif %}{% if filtros.estado %}estado={{ filtros.estado }}&{% endif %}{% if filtros.categoria %}categoria={{ filtros.categoria }}&{% endif %}rango=semana"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if rango_activo == 'semana' %}bg-alsi-700 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Semana</a>
+                <a href="?{% if filtros.q %}q={{ filtros.q }}&{% endif %}{% if filtros.tipo %}tipo={{ filtros.tipo }}&{% endif %}{% if filtros.estado %}estado={{ filtros.estado }}&{% endif %}{% if filtros.categoria %}categoria={{ filtros.categoria }}&{% endif %}rango=mes"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if rango_activo == 'mes' %}bg-alsi-700 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Este mes</a>
+                <a href="?{% if filtros.q %}q={{ filtros.q }}&{% endif %}{% if filtros.tipo %}tipo={{ filtros.tipo }}&{% endif %}{% if filtros.estado %}estado={{ filtros.estado }}&{% endif %}{% if filtros.categoria %}categoria={{ filtros.categoria }}&{% endif %}rango=mes_anterior"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if rango_activo == 'mes_anterior' %}bg-alsi-700 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Mes anterior</a>
+                <a href="?{% if filtros.q %}q={{ filtros.q }}&{% endif %}{% if filtros.tipo %}tipo={{ filtros.tipo }}&{% endif %}{% if filtros.estado %}estado={{ filtros.estado }}&{% endif %}{% if filtros.categoria %}categoria={{ filtros.categoria }}&{% endif %}rango=3m"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if rango_activo == '3m' %}bg-alsi-700 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">3 meses</a>
+                <a href="?{% if filtros.q %}q={{ filtros.q }}&{% endif %}{% if filtros.tipo %}tipo={{ filtros.tipo }}&{% endif %}{% if filtros.estado %}estado={{ filtros.estado }}&{% endif %}{% if filtros.categoria %}categoria={{ filtros.categoria }}&{% endif %}rango=6m"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if rango_activo == '6m' %}bg-alsi-700 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">6 meses</a>
+                <a href="?{% if filtros.q %}q={{ filtros.q }}&{% endif %}{% if filtros.tipo %}tipo={{ filtros.tipo }}&{% endif %}{% if filtros.estado %}estado={{ filtros.estado }}&{% endif %}{% if filtros.categoria %}categoria={{ filtros.categoria }}&{% endif %}rango=anio"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if rango_activo == 'anio' %}bg-alsi-700 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Este año</a>
+                <a href="?{% if filtros.q %}q={{ filtros.q }}&{% endif %}{% if filtros.tipo %}tipo={{ filtros.tipo }}&{% endif %}{% if filtros.estado %}estado={{ filtros.estado }}&{% endif %}{% if filtros.categoria %}categoria={{ filtros.categoria }}&{% endif %}rango=anio_anterior"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if rango_activo == 'anio_anterior' %}bg-alsi-700 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Año anterior</a>
+                <a href="?{% if filtros.q %}q={{ filtros.q }}&{% endif %}{% if filtros.tipo %}tipo={{ filtros.tipo }}&{% endif %}{% if filtros.estado %}estado={{ filtros.estado }}&{% endif %}{% if filtros.categoria %}categoria={{ filtros.categoria }}&{% endif %}rango=12m"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if rango_activo == '12m' %}bg-alsi-700 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">12 meses</a>
+                <a href="?{% if filtros.q %}q={{ filtros.q }}&{% endif %}{% if filtros.tipo %}tipo={{ filtros.tipo }}&{% endif %}{% if filtros.estado %}estado={{ filtros.estado }}&{% endif %}{% if filtros.categoria %}categoria={{ filtros.categoria }}&{% endif %}rango=todo"
+                   class="px-3 py-1.5 rounded text-xs font-medium {% if rango_activo == 'todo' %}bg-alsi-700 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">Todo</a>
+            </div>
+        </div>
+        <details class="text-xs" {% if rango_activo == 'personalizado' %}open{% endif %}>
+            <summary class="cursor-pointer text-alsi-600 hover:text-alsi-700 font-medium select-none">Periodo personalizado</summary>
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+                <label class="text-slate-500">Desde</label>
+                <input type="date" name="fecha_desde" value="{{ fecha_desde_filtro|default:'' }}" class="border border-slate-300 rounded px-2 py-1">
+                <label class="text-slate-500">Hasta</label>
+                <input type="date" name="fecha_hasta" value="{{ fecha_hasta_filtro|default:'' }}" class="border border-slate-300 rounded px-2 py-1">
+                <input type="hidden" name="rango" value="personalizado">
+                {% if filtros.tipo %}<input type="hidden" name="tipo" value="{{ filtros.tipo }}">{% endif %}
+                {% if filtros.estado %}<input type="hidden" name="estado" value="{{ filtros.estado }}">{% endif %}
+                {% if filtros.categoria %}<input type="hidden" name="categoria" value="{{ filtros.categoria }}">{% endif %}
+                {% if filtros.q %}<input type="hidden" name="q" value="{{ filtros.q }}">{% endif %}
+                <button class="btn btn-primary btn-sm">Aplicar personalizado</button>
+            </div>
+        </details>
+    </div>
+</form>
+
+<div class="bg-white rounded-xl shadow-card border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-left text-slate-500 border-b border-slate-200">
+                <tr>
+                    <th class="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider">Fecha</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider">Tipo</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider">Concepto</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider hidden md:table-cell">Categoria</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider hidden lg:table-cell">Cuenta destino</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider hidden lg:table-cell">Destinatario</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider hidden md:table-cell">Origen</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider hidden md:table-cell">Estado</th>
+                    <th class="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider text-right">Valor</th>
+                    <th class="py-3 px-4"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for m in movimientos %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-3 px-4 text-slate-600 whitespace-nowrap">
+                        {{ m.fecha|date:"d/m/Y" }}
+                        {% if m.hora %}<span class="text-slate-400 text-xs">{{ m.hora|time:"H:i" }}</span>{% endif %}
+                    </td>
+                    <td class="py-3 px-3">
+                        {% if m.es_ingreso %}
+                            <span class="badge bg-emerald-100 text-emerald-700">INGRESO</span>
+                        {% else %}
+                            <span class="badge bg-rose-100 text-rose-700">EGRESO</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-3">
+                        <a href="{% url 'movimientos:detalle' m.pk %}" class="text-slate-800 hover:text-alsi-700 font-medium">{{ m.concepto|default:"Sin concepto"|truncatechars:35 }}</a>
+                    </td>
+                    <td class="py-3 px-3 text-slate-600 hidden md:table-cell">{{ m.categoria.nombre|default:"—"|truncatechars:18 }}</td>
+                    <td class="py-3 px-3 text-slate-600 hidden lg:table-cell font-mono text-xs">{{ m.cuenta_destino|default:"—"|truncatechars:18 }}</td>
+                    <td class="py-3 px-3 text-slate-600 hidden lg:table-cell">{{ m.nombre_destinatario|default:m.tercero|default:"—"|truncatechars:18 }}</td>
+                    <td class="py-3 px-3 text-[11px] uppercase tracking-wide text-slate-500 hidden md:table-cell">{{ m.get_origen_display }}</td>
+                    <td class="py-3 px-3 hidden md:table-cell">
+                        {% if m.estado_conciliacion == 'PENDIENTE' %}
+                            <span class="badge bg-amber-100 text-amber-700">{{ m.get_estado_conciliacion_display }}</span>
+                        {% elif m.estado_conciliacion == 'CONCILIADO' %}
+                            <span class="badge bg-emerald-100 text-emerald-700">{{ m.get_estado_conciliacion_display }}</span>
+                        {% else %}
+                            <span class="badge bg-rose-100 text-rose-700">{{ m.get_estado_conciliacion_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-right font-mono font-semibold whitespace-nowrap {% if m.es_ingreso %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                        {% if m.es_ingreso %}+{% else %}-{% endif %}${{ m.valor|moneda }}
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <a href="{% url 'movimientos:detalle' m.pk %}" class="text-alsi-600 hover:text-alsi-700 text-xs font-medium">Ver</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="p-0">
+                        {% include 'partials/empty_state.html' with title='Sin movimientos' description='No hay movimientos con los filtros seleccionados. Crea uno nuevo o ajusta los filtros.' icon='movimientos' action_url='/movimientos/nuevo/' action_label='Nuevo movimiento' action_icon='plus' %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if movimientos.paginator.count %}
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-4 border-t border-slate-200 bg-slate-50 text-sm">
+        <span class="text-slate-600">
+            Mostrando
+            <strong class="text-slate-900">{{ movimientos.start_index }}</strong> -
+            <strong class="text-slate-900">{{ movimientos.end_index }}</strong>
+            de <strong class="text-slate-900">{{ movimientos.paginator.count }}</strong>
+            {% if rango_activo != 'todo' %}
+                en este periodo
+            {% endif %}
+            <span class="hidden sm:inline"> · Pagina <strong class="text-slate-900">{{ movimientos.number }}</strong> de <strong class="text-slate-900">{{ movimientos.paginator.num_pages }}</strong></span>
+        </span>
+        <nav class="flex items-center gap-1">
+            {% if movimientos.has_previous %}
+                <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ movimientos.previous_page_number }}"
+                   class="px-3 py-1.5 rounded border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 font-medium">
+                    ← Anterior
+                </a>
+            {% else %}
+                <span class="px-3 py-1.5 rounded border border-slate-200 text-slate-300 cursor-not-allowed">← Anterior</span>
+            {% endif %}
+
+            {% pagination_window movimientos as pages %}
+            {% for p in pages %}
+                {% if p == '...' %}
+                    <span class="px-3 py-1.5 text-slate-400">…</span>
+                {% elif p == movimientos.number %}
+                    <span class="px-3 py-1.5 rounded bg-alsi-700 text-white font-semibold">{{ p }}</span>
+                {% else %}
+                    <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ p }}"
+                       class="px-3 py-1.5 rounded border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 font-medium">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if movimientos.has_next %}
+                <a href="?{% if request.GET.urlencode %}{{ request.GET.urlencode|safe }}&{% endif %}page={{ movimientos.next_page_number }}"
+                   class="px-3 py-1.5 rounded border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 font-medium">
+                    Siguiente →
+                </a>
+            {% else %}
+                <span class="px-3 py-1.5 rounded border border-slate-200 text-slate-300 cursor-not-allowed">Siguiente →</span>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

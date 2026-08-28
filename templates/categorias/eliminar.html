@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar categoria · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white rounded-xl shadow-card border border-slate-200 p-6 animate-fade">
+    <div class="flex items-start gap-3">
+        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+            {% include 'partials/icon.html' with name='alert' class='w-6 h-6' %}
+        </div>
+        <div class="flex-1">
+            <h1 class="text-xl font-bold text-rose-700 mb-2">Eliminar categoria</h1>
+            <p class="text-sm text-slate-600 mb-5">
+                ¿Estas seguro de eliminar la categoria <strong>{{ object.nombre }}</strong>?
+                Los movimientos asociados no se eliminaran pero quedaran sin categoria.
+            </p>
+            <form method="post" class="flex items-center gap-3">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    {% include 'partials/icon.html' with name='trash' class='w-4 h-4' %}
+                    Si, eliminar
+                </button>
+                <a href="{% url 'categorias:lista' %}" class="btn btn-ghost">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

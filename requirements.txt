@@ -1,0 +1,14 @@
+Django>=5.0,<5.2
+python-dotenv>=1.0.0
+Pillow>=10.0.0
+django-crispy-forms>=2.1
+crispy-tailwind>=1.0.3
+psycopg2-binary>=2.9.9
+whitenoise>=6.6.0
+gunicorn>=21.2.0
+openpyxl>=3.1.0
+google-api-python-client>=2.100.0
+google-auth>=2.20.0
+google-auth-oauthlib>=1.1.0
+pywebpush>=2.0.0
+py-vapid>=2.0.0

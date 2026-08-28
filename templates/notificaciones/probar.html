@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load humanize core_extras %}
+
+{% block title %}Probar notificaciones · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl animate-fade">
+    <div class="mb-5">
+        <h1 class="text-2xl font-bold text-alsi-900 tracking-tight">Probar notificaciones push</h1>
+        <p class="text-sm text-slate-500 mt-0.5">Envia una notificacion de prueba a las suscripciones activas.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+            <div class="text-[11px] uppercase tracking-wider text-slate-500">Suscripciones activas</div>
+            <div class="text-2xl font-bold {% if total_activas %}text-alsi-700{% else %}text-slate-400{% endif %} font-mono mt-1">{{ total_activas }}</div>
+            <div class="text-[11px] text-slate-500 mt-1">
+                {% if total_activas == 0 %}
+                    Ningun navegador suscrito todavia.
+                {% elif total_activas == 1 %}
+                    navegador listo para recibir push
+                {% else %}
+                    navegadores listos para recibir push
+                {% endif %}
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+            <div class="text-[11px] uppercase tracking-wider text-slate-500">VAPID</div>
+            <div class="text-base font-bold mt-1 {% if vapid_ok %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                {% if vapid_ok %}Configurado{% else %}No configurado{% endif %}
+            </div>
+            {% if vapid_ok %}
+                <div class="text-[11px] text-slate-500 mt-1 font-mono break-all">pub: {{ vapid_public }}</div>
+                <div class="text-[11px] text-slate-400 mt-1" id="vapid-len">longitud: {{ vapid_public|length }} chars</div>
+            {% else %}
+                <div class="text-[11px] text-rose-700 mt-1">
+                    Corre <code class="bg-rose-50 px-1 rounded">python manage.py generar_vapid</code> y agrega las claves al .env.
+                </div>
+            {% endif %}
+        </div>
+        <div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+            <div class="text-[11px] uppercase tracking-wider text-slate-500">Service Worker</div>
+            <div class="text-base font-bold text-alsi-700 mt-1">/sw.js</div>
+            <div class="text-[11px] text-slate-500 mt-1" id="sw-status">Estado: revisando...</div>
+        </div>
+    </div>
+
+    <div id="push-diag" class="hidden mb-6 bg-slate-900 text-slate-100 rounded-xl p-5 font-mono text-xs whitespace-pre-wrap"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <form method="post" class="lg:col-span-2 bg-white rounded-xl shadow-card border border-slate-200 p-6 space-y-4">
+            {% csrf_token %}
+
+            <div class="bg-alsi-50 border border-alsi-200 rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 text-alsi-700">
+                        {% include 'partials/icon.html' with name='mail' class='w-5 h-5' %}
+                    </div>
+                    <div class="flex-1 text-sm">
+                        <div class="font-semibold text-alsi-900 mb-1">Activar notificaciones en este navegador</div>
+                        <p class="text-slate-600 mb-3">
+                            Para poder enviarte un push de prueba necesitas aceptar el permiso del navegador
+                            y tener el Service Worker registrado. Despues de hacer clic, recargamos la pagina
+                            y deberias aparecer como suscripcion activa.
+                        </p>
+                        <button type="button" id="btn-pedir-permiso-push" class="btn btn-primary text-sm">
+                            {% include 'partials/icon.html' with name='check' class='w-4 h-4' %}
+                            Activar notificaciones aqui
+                        </button>
+                        <p class="text-xs text-slate-500 mt-2">
+                            Si tu navegador ya las bloqueo, anda a la configuracion del sitio y cambialo a "Permitir".
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {% if not vapid_ok %}
+            <div class="bg-rose-50 border-l-4 border-rose-400 p-3 rounded-r text-sm text-rose-800">
+                <strong>Falta VAPID.</strong> Sin las claves no se pueden enviar push. Genera con
+                <code class="bg-rose-100 px-1 rounded">python manage.py generar_vapid</code>.
+            </div>
+            {% endif %}
+
+            {% if total_activas == 0 %}
+            <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r text-sm text-amber-800">
+                <strong>No hay suscripciones activas.</strong> Abre la app en el navegador y acepta el permiso de notificaciones.
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Titulo</label>
+                <input type="text" name="titulo" required maxlength="100"
+                       placeholder="ALSI - Prueba"
+                       value="{{ request.POST.titulo|default:'ALSI - Notificacion de prueba' }}"
+                       class="w-full">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Cuerpo</label>
+                <textarea name="cuerpo" required maxlength="300" rows="3"
+                          placeholder="Este es un mensaje de prueba desde el panel de admin."
+                          class="w-full">{% if request.POST.cuerpo %}{{ request.POST.cuerpo }}{% else %}Si ves esto, las notificaciones push funcionan correctamente.{% endif %}</textarea>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">URL al hacer click</label>
+                    <input type="text" name="url" maxlength="200"
+                           placeholder="/dashboard/"
+                           value="{{ request.POST.url|default:'/dashboard/' }}"
+                           class="w-full font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Destinatarios</label>
+                    <select name="objetivo" class="w-full">
+                        <option value="todas" {% if request.POST.objetivo == 'todas' or not request.POST.objetivo %}selected{% endif %}>
+                            Todas las activas ({{ total_activas }})
+                        </option>
+                        {% for s in activas %}
+                            <option value="{{ s.pk }}" {% if request.POST.objetivo|stringformat:"s" == s.pk|stringformat:"s" %}selected{% endif %}>
+                                #{{ s.pk }} - {{ s.user.username }} - {{ s.user_agent|truncatechars:40 }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 pt-3 border-t border-slate-100">
+                <button type="submit"
+                        class="btn btn-primary">
+                    {% include 'partials/icon.html' with name='mail' class='w-4 h-4' %}
+                    Enviar notificacion de prueba
+                </button>
+                <a href="{% url 'dashboard:home' %}" class="btn btn-ghost">Volver</a>
+                {% if not vapid_ok or total_activas == 0 %}
+                    <span class="text-xs text-slate-500">
+                        {% if not vapid_ok %}Falta VAPID{% endif %}
+                        {% if not vapid_ok and total_activas == 0 %} · {% endif %}
+                        {% if total_activas == 0 %}0 suscripciones{% endif %}
+                    </span>
+                {% endif %}
+            </div>
+        </form>
+
+        <div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+            <h2 class="font-semibold text-alsi-900 mb-3 text-sm">Suscripciones activas</h2>
+            {% if activas %}
+                <ul class="space-y-2 max-h-96 overflow-y-auto">
+                    {% for s in activas %}
+                        <li class="border border-slate-200 rounded-lg p-3 text-xs">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-semibold text-slate-700">#{{ s.pk }} - {{ s.user.username }}</span>
+                                <span class="badge bg-emerald-100 text-emerald-700">activa</span>
+                            </div>
+                            <div class="text-slate-500 font-mono break-all">{{ s.endpoint|truncatechars:60 }}</div>
+                            <div class="text-slate-400 mt-1">{{ s.creado_en|date:"d/m/Y H:i" }}</div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                {% include 'partials/empty_state.html' with title='Sin suscripciones' description='Aun no hay navegadores suscritos a notificaciones.' icon='mail' %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-6 bg-white rounded-xl shadow-card border border-slate-200 p-5 text-sm">
+        <h2 class="font-semibold text-alsi-900 mb-3">Como funciona</h2>
+        <ol class="space-y-1 text-slate-600 list-decimal list-inside">
+            <li>El cliente (frontend) pide permiso al usuario y registra un Service Worker (<code class="bg-slate-100 px-1 rounded text-xs">/static/js/sw.js</code>).</li>
+            <li>El SW pide un endpoint push a Google/mozilla y lo manda a <code class="bg-slate-100 px-1 rounded text-xs">/notificaciones/subscribe/</code>.</li>
+            <li>Cuando detecta un movimiento nuevo, el servidor usa <code class="bg-slate-100 px-1 rounded text-xs">enviar_notificacion()</code> que llama a <code class="bg-slate-100 px-1 rounded text-xs">pywebpush</code> con la clave privada VAPID.</li>
+            <li>Google/mozilla entrega el push al navegador suscrito, el SW lo muestra.</li>
+        </ol>
+        <p class="text-slate-500 text-xs mt-3">
+            Si el push llega al SW pero no se muestra, revisa la consola del navegador. Las suscripciones
+            invalidas (404/410) se desactivan automaticamente.
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load humanize core_extras %}
+
+{% block title %}Dashboard · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-6 animate-fade">
+    <div>
+        <h1 class="text-2xl font-bold text-alsi-900 tracking-tight">Dashboard</h1>
+        <p class="text-sm text-slate-500 mt-0.5 flex items-center gap-2">
+            {% include 'partials/icon.html' with name='calendar' class='w-4 h-4' %}
+            <span>{{ fecha_desde|date:"d/m/Y" }} — {{ fecha_hasta|date:"d/m/Y" }}</span>
+        </p>
+    </div>
+<div class="flex flex-wrap items-center gap-2 text-sm">
+        {% if user.es_administrador %}
+            {% if gmail_conectado %}
+                <a href="{% url 'gmail:sincronizar' %}" class="btn btn-success">
+                    {% include 'partials/icon.html' with name='mail' class='w-4 h-4' %}
+                    <span>Sincronizar Gmail</span>
+                </a>
+            {% else %}
+                <a href="{% url 'gmail:conectar' %}" class="btn btn-secondary">
+                    {% include 'partials/icon.html' with name='gmail' class='w-4 h-4' %}
+                    <span>Conectar Gmail</span>
+                </a>
+            {% endif %}
+        {% endif %}
+        <form method="get" class="flex flex-wrap items-center gap-2 bg-white border border-slate-200 rounded-lg p-1.5 shadow-soft">
+            <select name="rango" class="bg-transparent border-0 text-sm focus:outline-none focus:ring-0 px-1">
+                <option value="hoy" {% if rango_activo == 'hoy' %}selected{% endif %}>Hoy</option>
+                <option value="semana" {% if rango_activo == 'semana' %}selected{% endif %}>Esta semana</option>
+                <option value="mes" {% if rango_activo == 'mes' %}selected{% endif %}>Este mes</option>
+                <option value="mes_anterior" {% if rango_activo == 'mes_anterior' %}selected{% endif %}>Mes anterior</option>
+                <option value="3m" {% if rango_activo == '3m' %}selected{% endif %}>3 meses</option>
+                <option value="6m" {% if rango_activo == '6m' %}selected{% endif %}>6 meses</option>
+                <option value="12m" {% if rango_activo == '12m' %}selected{% endif %}>12 meses</option>
+                <option value="anio" {% if rango_activo == 'anio' %}selected{% endif %}>Este año</option>
+                <option value="anio_anterior" {% if rango_activo == 'anio_anterior' %}selected{% endif %}>Año anterior</option>
+                <option value="todo" {% if rango_activo == 'todo' %}selected{% endif %}>Todo</option>
+                <option value="personalizado" {% if rango_activo == 'personalizado' %}selected{% endif %}>Personalizado</option>
+            </select>
+            <input type="date" name="desde" value="{{ fecha_desde|date:'Y-m-d' }}" class="bg-transparent border-0 text-sm focus:outline-none focus:ring-0 px-1 w-32">
+            <span class="text-slate-300">|</span>
+            <input type="date" name="hasta" value="{{ fecha_hasta|date:'Y-m-d' }}" class="bg-transparent border-0 text-sm focus:outline-none focus:ring-0 px-1 w-32">
+            <button class="btn btn-primary text-xs py-1">Aplicar</button>
+        </form>
+    </div>
+</div>
+</div>
+
+{% if pendientes_conciliacion %}
+<div class="mb-6 bg-amber-50 border-l-4 border-amber-400 rounded-r-lg px-4 py-3 flex items-center gap-3 shadow-soft animate-slide">
+    <div class="flex-shrink-0 text-amber-600">
+        {% include 'partials/icon.html' with name='alert' class='w-5 h-5' %}
+    </div>
+    <div class="flex-1 text-sm text-amber-800">
+        Tienes <strong>{{ pendientes_conciliacion }}</strong> movimientos pendientes de revision.
+    </div>
+    <a href="{% url 'movimientos:lista' %}?estado=PENDIENTE" class="btn btn-secondary text-xs">Revisar</a>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-gradient-to-br from-alsi-700 to-alsi-900 text-white rounded-xl shadow-card hover-lift p-5">
+        <div class="flex items-center justify-between mb-2">
+            <div class="text-[11px] uppercase tracking-wider text-alsi-100/80">Saldo actual</div>
+            {% include 'partials/icon.html' with name='wallet' class='w-5 h-5 text-alsi-200' %}
+        </div>
+        <div class="text-2xl md:text-3xl font-bold tracking-tight">${{ saldo_total|moneda }}</div>
+        <div class="text-[11px] text-alsi-100/70 mt-2 flex items-center gap-1">
+            <span>Inicial: ${{ saldo_inicial|moneda }}</span>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl shadow-card border border-slate-200 hover-lift p-5">
+        <div class="flex items-center justify-between mb-2">
+            <div class="text-[11px] uppercase tracking-wider text-slate-500">Ingresos</div>
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+                {% include 'partials/icon.html' with name='trend-up' class='w-4 h-4' %}
+            </div>
+        </div>
+        <div class="text-2xl md:text-3xl font-bold text-emerald-700 tracking-tight">${{ totales.ingresos|moneda }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-card border border-slate-200 hover-lift p-5">
+        <div class="flex items-center justify-between mb-2">
+            <div class="text-[11px] uppercase tracking-wider text-slate-500">Egresos</div>
+            <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600">
+                {% include 'partials/icon.html' with name='trend-down' class='w-4 h-4' %}
+            </div>
+        </div>
+        <div class="text-2xl md:text-3xl font-bold text-rose-700 tracking-tight">${{ totales.egresos|moneda }}</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-card border border-slate-200 hover-lift p-5">
+        <div class="flex items-center justify-between mb-2">
+            <div class="text-[11px] uppercase tracking-wider text-slate-500">Balance</div>
+            <div class="w-8 h-8 rounded-lg {% if totales.balance >= 0 %}bg-alsi-50{% else %}bg-rose-50{% endif %} flex items-center justify-center {% if totales.balance >= 0 %}text-alsi-600{% else %}text-rose-600{% endif %}">
+                {% include 'partials/icon.html' with name='scale' class='w-4 h-4' %}
+            </div>
+        </div>
+        <div class="text-2xl md:text-3xl font-bold tracking-tight {% if totales.balance >= 0 %}text-alsi-700{% else %}text-rose-700{% endif %}">
+            {% if totales.balance >= 0 %}+{% else %}-{% endif %}${{ totales.balance|abs_valor|moneda }}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-card border border-slate-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="font-semibold text-alsi-900">Ingresos vs Egresos</h2>
+                <p class="text-xs text-slate-500">Por mes</p>
+            </div>
+        </div>
+        <canvas id="chartIngresosEgresos" height="100"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="font-semibold text-alsi-900">Distribucion del gasto</h2>
+                <p class="text-xs text-slate-500">Por categoria</p>
+            </div>
+        </div>
+        <canvas id="chartCategorias" height="180"></canvas>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="font-semibold text-alsi-900">Evolucion del saldo</h2>
+                <p class="text-xs text-slate-500">Acumulado en el tiempo</p>
+            </div>
+        </div>
+        <canvas id="chartSaldo" height="100"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="font-semibold text-alsi-900">Conciliacion</h2>
+                <p class="text-xs text-slate-500">Estado actual de movimientos</p>
+            </div>
+        </div>
+        <canvas id="chartEstados" height="100"></canvas>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h2 class="font-semibold text-alsi-900">Ultimos movimientos</h2>
+            <p class="text-xs text-slate-500">Los mas recientes</p>
+        </div>
+        <a href="{% url 'movimientos:lista' %}" class="text-sm text-alsi-600 hover:text-alsi-700 font-medium inline-flex items-center gap-1">
+            Ver todos {% include 'partials/icon.html' with name='arrow-right' class='w-4 h-4' %}
+        </a>
+    </div>
+    <div class="overflow-x-auto -mx-5">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-left text-slate-500 border-b border-slate-200">
+                    <th class="py-2.5 px-5 font-medium text-xs uppercase tracking-wider">Fecha</th>
+                    <th class="py-2.5 px-3 font-medium text-xs uppercase tracking-wider">Tipo</th>
+                    <th class="py-2.5 px-3 font-medium text-xs uppercase tracking-wider">Concepto</th>
+                    <th class="py-2.5 px-3 font-medium text-xs uppercase tracking-wider">Categoria</th>
+                    <th class="py-2.5 px-5 font-medium text-xs uppercase tracking-wider text-right">Valor</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for m in ultimos %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-3 px-5 text-slate-600 whitespace-nowrap">{{ m.fecha|date:"d/m/Y" }}</td>
+                    <td class="py-3 px-3">
+                        {% if m.es_ingreso %}
+                            <span class="badge bg-emerald-100 text-emerald-700">INGRESO</span>
+                        {% else %}
+                            <span class="badge bg-rose-100 text-rose-700">EGRESO</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-3">
+                        <a class="text-slate-800 hover:text-alsi-700 font-medium" href="{% url 'movimientos:detalle' m.pk %}">{{ m.concepto|default:"Sin concepto"|truncatechars:45 }}</a>
+                    </td>
+                    <td class="py-3 px-3 text-slate-600">{{ m.categoria.nombre|default:"—" }}</td>
+                    <td class="py-3 px-5 text-right font-mono font-semibold {% if m.es_ingreso %}text-emerald-700{% else %}text-rose-700{% endif %}">
+                        {% if m.es_ingreso %}+{% else %}-{% endif %}${{ m.valor|moneda }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="py-10 text-center text-slate-400">
+                    {% include 'partials/empty_state.html' with title='Aun no hay movimientos' description='Registra tu primer movimiento o sincroniza Gmail para empezar.' icon='wallet' %}
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const paleta = ['#1f5fa8','#4f89cc','#7ba6d9','#a8c4e6','#154a85','#0b3666','#82a0bc','#5687b6','#10b981','#f59e0b','#ef4444','#8b5cf6'];
+
+(function () {
+  const meses = {{ por_mes_keys|safe|default:'[]' }};
+  const ingresos = {{ por_mes_ingresos|safe|default:'[]' }};
+  const egresos = {{ por_mes_egresos|safe|default:'[]' }};
+  if (!meses.length) return;
+  new Chart(document.getElementById('chartIngresosEgresos'), {
+    type: 'bar',
+    data: {
+      labels: meses,
+      datasets: [
+        { label: 'Ingresos', data: ingresos, backgroundColor: '#10b981', borderRadius: 6, borderSkipped: false, barPercentage: 0.6 },
+        { label: 'Egresos',  data: egresos,  backgroundColor: '#ef4444', borderRadius: 6, borderSkipped: false, barPercentage: 0.6 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } } },
+      scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } }, x: { grid: { display: false } } }
+    }
+  });
+})();
+
+(function () {
+  const meses = {{ por_mes_keys|safe|default:'[]' }};
+  const ingresos = {{ por_mes_ingresos|safe|default:'[]' }};
+  const egresos = {{ por_mes_egresos|safe|default:'[]' }};
+  if (!meses.length) return;
+  let acumulado = {{ saldo_inicial|default:0 }};
+  const evolucion = ingresos.map((v, i) => { acumulado += v - egresos[i]; return acumulado; });
+  new Chart(document.getElementById('chartSaldo'), {
+    type: 'line',
+    data: { labels: meses, datasets: [{
+      label: 'Saldo', data: evolucion,
+      borderColor: '#1f5fa8', backgroundColor: 'rgba(31,95,168,0.1)',
+      fill: true, tension: 0.35, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#1f5fa8'
+    }] },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } }, x: { grid: { display: false } } }
+    }
+  });
+})();
+
+(function () {
+  const labelsIng = {{ distrib_ing_labels|safe|default:'[]' }};
+  const labelsEgr = {{ distrib_egr_labels|safe|default:'[]' }};
+  const dataIng = {{ distrib_ing_data|safe|default:'[]' }};
+  const dataEgr = {{ distrib_egr_data|safe|default:'[]' }};
+  const labels = (labelsEgr.length ? labelsEgr : labelsIng).slice(0, 8);
+  const data   = (dataEgr.length   ? dataEgr   : dataIng).slice(0, 8);
+  if (!labels.length) return;
+  new Chart(document.getElementById('chartCategorias'), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: paleta.slice(0, labels.length), borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } } }, cutout: '62%' }
+  });
+})();
+
+(function () {
+  new Chart(document.getElementById('chartEstados'), {
+    type: 'bar',
+    data: {
+      labels: ['Pendiente','Conciliado','Observado'],
+      datasets: [{
+        data: [{{ estados.PENDIENTE|default:0 }}, {{ estados.CONCILIADO|default:0 }}, {{ estados.OBSERVADO|default:0 }}],
+        backgroundColor: ['#f59e0b','#10b981','#ef4444'],
+        borderRadius: 8, borderSkipped: false, barPercentage: 0.5
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } },
+               scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+  });
+})();
+</script>
+{% endblock %}

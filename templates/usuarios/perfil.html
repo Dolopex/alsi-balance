@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi perfil · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl animate-fade">
+    <h1 class="text-2xl font-bold text-alsi-900 tracking-tight mb-5">Mi perfil</h1>
+    <div class="bg-white rounded-xl shadow-card border border-slate-200 overflow-hidden">
+        <div class="bg-gradient-alsi p-6 flex items-center gap-4">
+            <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center text-alsi-700 text-2xl font-bold shadow-md">
+                {{ user.first_name|first|default:user.username|first|upper }}
+            </div>
+            <div class="text-white">
+                <div class="font-bold text-lg">{{ user.get_full_name|default:user.username }}</div>
+                <div class="text-alsi-100 text-sm">{{ user.email|default:"Sin email" }}</div>
+            </div>
+        </div>
+        <dl class="p-6 grid grid-cols-2 gap-y-4 text-sm">
+            <div>
+                <dt class="text-[11px] uppercase tracking-wider text-slate-500">Usuario</dt>
+                <dd class="text-slate-800 font-medium mt-0.5">{{ user.username }}</dd>
+            </div>
+            <div>
+                <dt class="text-[11px] uppercase tracking-wider text-slate-500">Rol</dt>
+                <dd class="mt-0.5">
+                    {% if user.es_administrador %}
+                        <span class="badge bg-alsi-100 text-alsi-700">{{ user.get_rol_display }}</span>
+                    {% else %}
+                        <span class="badge bg-slate-100 text-slate-600">{{ user.get_rol_display }}</span>
+                    {% endif %}
+                </dd>
+            </div>
+            <div>
+                <dt class="text-[11px] uppercase tracking-wider text-slate-500">Nombre</dt>
+                <dd class="text-slate-800 mt-0.5">{{ user.first_name|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt class="text-[11px] uppercase tracking-wider text-slate-500">Apellido</dt>
+                <dd class="text-slate-800 mt-0.5">{{ user.last_name|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt class="text-[11px] uppercase tracking-wider text-slate-500">Documento</dt>
+                <dd class="text-slate-800 mt-0.5">{{ user.documento|default:"—" }}</dd>
+            </div>
+            <div>
+                <dt class="text-[11px] uppercase tracking-wider text-slate-500">Telefono</dt>
+                <dd class="text-slate-800 mt-0.5">{{ user.telefono|default:"—" }}</dd>
+            </div>
+            <div class="col-span-2">
+                <dt class="text-[11px] uppercase tracking-wider text-slate-500">Cargo</dt>
+                <dd class="text-slate-800 mt-0.5">{{ user.cargo|default:"—" }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+{% endblock %}

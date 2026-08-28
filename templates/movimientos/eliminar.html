@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load humanize core_extras %}
+
+{% block title %}Eliminar movimiento · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white rounded-xl shadow-card border border-slate-200 p-6 animate-fade">
+    <div class="flex items-start gap-3">
+        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+            {% include 'partials/icon.html' with name='alert' class='w-6 h-6' %}
+        </div>
+        <div class="flex-1">
+            <h1 class="text-xl font-bold text-rose-700 mb-2">Eliminar movimiento</h1>
+            <p class="text-sm text-slate-600 mb-5">
+                ¿Estas seguro de eliminar el movimiento
+                <strong>{{ object.concepto|default:"sin concepto" }}</strong>
+                por <span class="font-mono font-semibold {% if object.es_ingreso %}text-emerald-700{% else %}text-rose-700{% endif %}">${{ object.valor|moneda }}</span>
+                del <strong>{{ object.fecha|date:"d/m/Y" }}</strong>?
+                Esta accion queda registrada en auditoria.
+            </p>
+            <form method="post" class="flex items-center gap-3">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    {% include 'partials/icon.html' with name='trash' class='w-4 h-4' %}
+                    Si, eliminar
+                </button>
+                <a href="{% url 'movimientos:detalle' object.pk %}" class="btn btn-ghost">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

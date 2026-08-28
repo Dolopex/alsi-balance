@@ -1,0 +1,45 @@
+<nav class="alsi-navbar">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <a href="{% url 'dashboard:home' %}" class="flex items-center gap-3 hover:opacity-95" aria-label="{{ APP_NAME }} - Inicio">
+            <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center font-extrabold text-alsi-700 shadow-sm">
+                <span class="text-sm tracking-tighter">ALSI</span>
+            </div>
+            <div class="leading-tight hidden sm:block">
+                <div class="font-bold tracking-tight text-base">{{ APP_NAME }}</div>
+                <div class="text-[10px] uppercase tracking-wider opacity-75">{{ APP_COMPANY }}</div>
+            </div>
+        </a>
+
+        <div class="flex items-center gap-2">
+            {% if user.is_authenticated %}
+                <div class="hidden md:flex items-center gap-2 text-sm text-alsi-100 mr-2">
+                    <div class="w-8 h-8 rounded-full bg-alsi-600 flex items-center justify-center text-xs font-bold uppercase">
+                        {{ user.first_name|first|default:user.username|first }}{{ user.last_name|first|default:"" }}
+                    </div>
+                    <div class="leading-tight">
+                        <div class="font-medium text-white">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="text-[10px] opacity-75 uppercase tracking-wide">{{ user.get_rol_display }}</div>
+                    </div>
+                </div>
+                <form method="post" action="{% url 'usuarios:logout' %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-ghost text-white hover:bg-alsi-700" aria-label="Cerrar sesion" title="Cerrar sesion">
+                        {% include 'partials/icon.html' with name='logout' class='w-5 h-5' %}
+                        <span class="hidden md:inline">Salir</span>
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'usuarios:login' %}" class="btn btn-secondary">Iniciar sesion</a>
+            {% endif %}
+            <button id="mobile-menu-btn" class="md:hidden text-white p-2 rounded hover:bg-alsi-700" aria-label="Abrir menu">
+                {% include 'partials/icon.html' with name='menu' class='w-6 h-6' %}
+            </button>
+        </div>
+    </div>
+</nav>
+
+<script>
+  document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+    document.getElementById('sidebar')?.classList.toggle('hidden');
+  });
+</script>

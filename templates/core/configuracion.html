@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load humanize core_extras %}
+
+{% block title %}Configuracion del sistema · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl animate-fade">
+    <div class="mb-5">
+        <h1 class="text-2xl font-bold text-alsi-900 tracking-tight">Configuracion del sistema</h1>
+        <p class="text-sm text-slate-500 mt-0.5">Ajusta el saldo inicial con el que arranca la cuenta.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+            <div class="text-[11px] uppercase tracking-wider text-slate-500">Saldo inicial</div>
+            <div class="text-xl font-bold text-alsi-700 mt-1 font-mono">${{ config.saldo_inicial|moneda }}</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+            <div class="text-[11px] uppercase tracking-wider text-slate-500">Calculado actual</div>
+            <div class="text-xl font-bold text-alsi-700 mt-1 font-mono">${{ saldo_calculado|moneda }}</div>
+            <div class="text-[11px] text-slate-500 mt-1">Ingresos - Egresos</div>
+        </div>
+        <div class="bg-white rounded-xl shadow-card border border-slate-200 p-5">
+            <div class="text-[11px] uppercase tracking-wider text-slate-500">Total movs</div>
+            <div class="text-xl font-bold text-slate-700 mt-1 font-mono">{{ config.id|length|default:0 }}</div>
+        </div>
+    </div>
+
+    <form method="post" class="bg-white rounded-xl shadow-card border border-slate-200 p-6 space-y-5">
+        {% csrf_token %}
+        <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r text-sm text-amber-800">
+            <strong>Importante:</strong> El saldo inicial es el punto de partida. Todos los movimientos
+            se suman/restan a partir de este valor. Si Bancolombia envi&oacute; correos sin notificacion
+            y no los has registrado, puedes ajustar este saldo para reflejar la realidad.
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-1">
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Saldo inicial</label>
+                <input type="text" name="saldo_inicial" value="{{ config.saldo_inicial|moneda }}"
+                       class="w-full font-mono" placeholder="0,00">
+                <p class="text-[11px] text-slate-500 mt-1">Formato: 1.234.567,89 (sin $ ni simbolos)</p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Banco</label>
+                <input type="text" name="banco" value="{{ config.banco|default:'Bancolombia' }}" class="w-full">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nombre cuenta</label>
+                <input type="text" name="nombre_cuenta" value="{{ config.nombre_cuenta|default:'Cuenta principal' }}" class="w-full">
+            </div>
+        </div>
+
+        {% if not user.es_administrador %}
+        <div class="bg-rose-50 border-l-4 border-rose-400 p-3 rounded-r text-sm text-rose-800">
+            Solo el administrador puede modificar el saldo inicial.
+        </div>
+        {% endif %}
+
+        <div class="flex items-center gap-3 pt-3 border-t border-slate-100">
+            <button type="submit" class="btn btn-primary" {% if not user.es_administrador %}disabled{% endif %}>
+                {% include 'partials/icon.html' with name='check' class='w-4 h-4' %}
+                Guardar saldo inicial
+            </button>
+            <a href="{% url 'dashboard:home' %}" class="btn btn-ghost">Cancelar</a>
+        </div>
+    </form>
+
+    <div class="mt-6 bg-white rounded-xl shadow-card border border-slate-200 p-5 text-sm">
+        <h2 class="font-semibold text-alsi-900 mb-3">Como funciona el calculo</h2>
+        <div class="space-y-1 font-mono text-slate-700 bg-alsi-50 rounded-lg p-4">
+            <div>Saldo inicial:              ${{ config.saldo_inicial|moneda }}</div>
+            <div>(+) Ingresos:               ${{ total_ingresos|moneda }}</div>
+            <div>(-) Egresos:                ${{ total_egresos|moneda }}</div>
+            <div class="border-t border-alsi-200 mt-2 pt-2 font-bold">
+                (=) Saldo calculado:        ${{ saldo_calculado|moneda }}
+            </div>
+        </div>
+        <p class="text-slate-500 text-xs mt-3">
+            Si tus movimientos no cuadran con el saldo real de la cuenta, ajusta el saldo inicial
+            para reflejar las operaciones que Bancolombia no notifica (ej. consignaciones en efectivo).
+        </p>
+    </div>
+</div>
+{% endblock %}

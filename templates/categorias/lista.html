@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Categorias · {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-5 animate-fade">
+    <div>
+        <h1 class="text-2xl font-bold text-alsi-900 tracking-tight">Categorias</h1>
+        <p class="text-sm text-slate-500 mt-0.5">{{ categorias|length }} categoria(s)</p>
+    </div>
+    {% if user.es_administrador %}
+    <a href="{% url 'categorias:crear' %}" class="btn btn-primary">
+        {% include 'partials/icon.html' with name='plus' class='w-4 h-4' %}
+        <span>Nueva categoria</span>
+    </a>
+    {% endif %}
+</div>
+
+<div class="bg-white rounded-xl shadow-card border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-slate-50 text-left text-slate-500 border-b border-slate-200">
+                <tr>
+                    <th class="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider">Nombre</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider">Tipo</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider hidden md:table-cell">Descripcion</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider">Color</th>
+                    <th class="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider">Estado</th>
+                    {% if user.es_administrador %}
+                    <th class="py-3 px-4"></th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for c in categorias %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background: {{ c.color }}"></span>
+                            <span class="font-medium text-slate-800">{{ c.nombre }}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-3">
+                        {% if c.tipo == 'INGRESO' %}
+                            <span class="badge bg-emerald-100 text-emerald-700">INGRESO</span>
+                        {% else %}
+                            <span class="badge bg-rose-100 text-rose-700">EGRESO</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-3 text-slate-500 hidden md:table-cell">{{ c.descripcion|default:"—"|truncatechars:50 }}</td>
+                    <td class="py-3 px-3">
+                        <code class="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono">{{ c.color }}</code>
+                    </td>
+                    <td class="py-3 px-3">
+                        {% if c.activo %}
+                            <span class="text-xs text-emerald-700 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Activa
+                            </span>
+                        {% else %}
+                            <span class="text-xs text-slate-500 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 bg-slate-400 rounded-full"></span> Inactiva
+                            </span>
+                        {% endif %}
+                    </td>
+                    {% if user.es_administrador %}
+                    <td class="py-3 px-4 text-right">
+                        <a href="{% url 'categorias:editar' c.pk %}" class="text-alsi-600 hover:text-alsi-700 text-xs font-medium mr-2">Editar</a>
+                        <a href="{% url 'categorias:eliminar' c.pk %}" class="text-rose-600 hover:text-rose-700 text-xs font-medium">Eliminar</a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="p-0">
+                    {% include 'partials/empty_state.html' with title='Sin categorias' description='Crea categorias para agrupar tus ingresos y egresos.' icon='categorias' action_url='/categorias/nueva/' action_label='Nueva categoria' action_icon='plus' %}
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

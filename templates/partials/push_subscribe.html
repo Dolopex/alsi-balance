@@ -1,0 +1,130 @@
+{% comment %}
+  Registra el Service Worker y suscribe el navegador a Web Push.
+  Solo actua cuando el usuario hace click en "Activar notificaciones aqui".
+{% endcomment %}
+<script>
+(function () {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+  const VAPID_PUBLIC_KEY = '{{ vapid_public_key|default:"" }}';
+  const SUBSCRIBE_URL = '{% url "notificaciones:subscribe" %}';
+  const SUBSCRIBED_FLAG = 'alsi_push_subscribed_v1';
+
+  const diag = document.getElementById('push-diag');
+  function logDiag(msg, isError = false) {
+    if (!diag) return;
+    diag.classList.remove('hidden');
+    const prefix = isError ? '❌ ' : '✓ ';
+    diag.textContent += prefix + msg + '\n';
+  }
+  function clearDiag() {
+    if (diag) { diag.classList.add('hidden'); diag.textContent = ''; }
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = window.atob(base64);
+    return Uint8Array.from(raw, c => c.charCodeAt(0));
+  }
+
+  async function updateSWStatus() {
+    const el = document.getElementById('sw-status');
+    if (!el) return;
+    if (!('serviceWorker' in navigator)) {
+      el.textContent = 'NO soportado en este navegador';
+      return;
+    }
+    try {
+      const reg = await navigator.serviceWorker.getRegistration('/sw.js');
+      const sub = reg ? await reg.pushManager.getSubscription() : null;
+      if (reg && sub) {
+        el.textContent = `Registrado y suscrito (scope=${reg.scope})`;
+      } else if (reg) {
+        el.textContent = `Registrado pero SIN suscripcion push (scope=${reg.scope})`;
+      } else {
+        el.textContent = 'NO registrado - hace falta "Activar"';
+      }
+    } catch (e) {
+      el.textContent = `Error: ${e.message}`;
+    }
+  }
+
+  async function registerAndSubscribe() {
+    clearDiag();
+    logDiag('VAPID key length: ' + VAPID_PUBLIC_KEY.length + ' chars');
+    if (!VAPID_PUBLIC_KEY) {
+      logDiag('VAPID_PUBLIC_KEY vacia', true);
+      return;
+    }
+    logDiag('Permission: ' + Notification.permission);
+
+    try {
+      logDiag('Registrando /sw.js con scope /...');
+      const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      logDiag('SW registrado. Scope: ' + reg.scope);
+      await navigator.serviceWorker.ready;
+      logDiag('SW activo');
+
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        logDiag('Llamando pushManager.subscribe()...');
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+        logDiag('Suscripcion creada');
+      } else {
+        logDiag('Suscripcion ya existia - reusando');
+      }
+
+      logDiag('Guardando en backend...');
+      const resp = await fetch(SUBSCRIBE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify(sub.toJSON()),
+      });
+      const data = await resp.json().catch(() => ({}));
+      logDiag('Backend HTTP ' + resp.status + ' - ' + JSON.stringify(data));
+      if (!resp.ok) throw new Error('Backend rechazo la suscripcion');
+
+      localStorage.setItem(SUBSCRIBED_FLAG, '1');
+      logDiag('Listo. Recargando...');
+      setTimeout(() => location.reload(), 1500);
+    } catch (err) {
+      logDiag('ERROR: ' + err.name + ' - ' + err.message, true);
+      console.error('[push]', err);
+    }
+  }
+
+  function getCookie(name) {
+    const m = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]*)'));
+    return m ? decodeURIComponent(m[2]) : '';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateSWStatus();
+    const pedirBtn = document.getElementById('btn-pedir-permiso-push');
+    if (!pedirBtn) return;
+
+    if (Notification.permission === 'denied') {
+      pedirBtn.style.display = 'none';
+      logDiag('Notificaciones BLOQUEADAS. Cambia el permiso en el candado de la URL.', true);
+      return;
+    }
+
+    pedirBtn.addEventListener('click', async () => {
+      if (Notification.permission === 'default') {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          clearDiag();
+          logDiag('Permiso denegado: ' + perm, true);
+          return;
+        }
+      }
+      pedirBtn.style.display = 'none';
+      await registerAndSubscribe();
+    });
+  });
+})();
+</script>
