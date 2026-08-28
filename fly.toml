@@ -1,7 +1,8 @@
 app = "alsi-balance"
-primary_region = "gru"
+primary_region = "iad"
 
 [build]
+  dockerfile = "Dockerfile"
 
 [deploy]
   release_command = "python manage.py migrate --noinput && python manage.py collectstatic --noinput"
@@ -14,7 +15,7 @@ primary_region = "gru"
 [[services]]
   protocol = "tcp"
   internal_port = 8000
-  auto_stop_machines = "stop"
+  auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
 
