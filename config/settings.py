@@ -12,7 +12,11 @@ import os
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Cargar .env primero (desarrollo local), luego .env.production si existe
+# (creado por `vercel env pull`) - con override=True toma prioridad para
+# que `python manage.py migrate` apunte a Neon/Postgres en lugar de SQLite.
 load_dotenv(BASE_DIR / ".env")
+load_dotenv(BASE_DIR / ".env.production", override=True)
 
 
 def env_bool(name: str, default: bool = False) -> bool:
