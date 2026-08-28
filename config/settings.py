@@ -97,8 +97,14 @@ VAPID_CLAIMS = {
 }
 
 # Sincronizacion automatica de Gmail
-GMAIL_AUTO_SYNC = os.environ.get("GMAIL_AUTO_SYNC", "0") == "1"
-GMAIL_AUTO_SYNC_INTERVAL = int(os.environ.get("GMAIL_AUTO_SYNC_INTERVAL", "60"))
+# En Vercel/serverless las env vars no definidas vienen como ""
+# (string vacio), no como ausencia. Por eso usamos `or "default"`.
+GMAIL_AUTO_SYNC = (os.environ.get("GMAIL_AUTO_SYNC") or "0") == "1"
+try:
+    _intervalo = int(os.environ.get("GMAIL_AUTO_SYNC_INTERVAL") or "60")
+except ValueError:
+    _intervalo = 60
+GMAIL_AUTO_SYNC_INTERVAL = _intervalo
 
 # Gmail Watch (Pub/Sub) para notificacion en tiempo real
 GMAIL_PUBSUB_TOPIC = os.environ.get("GMAIL_PUBSUB_TOPIC", "")

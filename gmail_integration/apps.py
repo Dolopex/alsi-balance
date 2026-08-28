@@ -31,7 +31,7 @@ class GmailIntegrationConfig(AppConfig):
         import time
 
         try:
-            intervalo = int(os.environ.get("GMAIL_AUTO_SYNC_INTERVAL", "60"))
+            intervalo = int(os.environ.get("GMAIL_AUTO_SYNC_INTERVAL") or "60")
         except ValueError:
             intervalo = 60
         if intervalo < 30:
