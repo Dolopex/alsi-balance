@@ -6,11 +6,12 @@ from django.conf.urls.static import static
 from django.urls import path, include
 from django.views.generic import RedirectView
 
-from core.views import service_worker
+from core.views import healthz, service_worker
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("sw.js", service_worker, name="service_worker"),
+    path("healthz/", healthz, name="healthz"),
     path("", RedirectView.as_view(pattern_name="dashboard:home", permanent=False)),
     path("usuarios/", include(("usuarios.urls", "usuarios"))),
     path("movimientos/", include(("movimientos.urls", "movimientos"))),

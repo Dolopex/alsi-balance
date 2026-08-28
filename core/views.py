@@ -5,15 +5,35 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseNotFound
+from django.db import connection
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 
 from core.models import ConfiguracionSistema
 from core.selectors import obtener_configuracion
 from core.services import calcular_saldo
 from movimientos.selectors import listar_movimientos
+
+
+@csrf_exempt
+@require_GET
+def healthz(request):
+    """Health check para Fly.io / Kubernetes. Devuelve 200 sin auth, sin DB.
+
+    Usado por el load balancer para decidir si la instancia está lista
+    para recibir tráfico. Si la DB está OK y devuelve 200, la instancia
+    está sana.
+    """
+    try:
+        connection.ensure_connection()
+        db_ok = True
+    except Exception:
+        db_ok = False
+
+    return JsonResponse({"status": "ok" if db_ok else "degraded", "db": db_ok})
 
 
 @login_required
