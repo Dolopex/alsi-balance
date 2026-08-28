@@ -31,9 +31,12 @@ def env_list(name: str, default: list[str] | None = None) -> list[str]:
 
 DEBUG = env_bool("DJANGO_DEBUG", default=True)
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "dev-insecure-key-change-me-in-production-alsi-balance",
+# En Vercel las env vars no definidas vienen como "" (string vacio),
+# no como None. Por eso usamos `or "default"` para todos los env vars
+# que tengan un valor por defecto.
+SECRET_KEY = (
+    os.environ.get("DJANGO_SECRET_KEY")
+    or "dev-insecure-key-change-me-in-production-alsi-balance"
 )
 
 if not DEBUG and SECRET_KEY.startswith("dev-insecure"):
@@ -171,7 +174,9 @@ ASGI_APPLICATION = "config.asgi.application"
 # ----- Base de datos -----
 # Si se define DATABASE_URL apuntando a postgres, se usa psycopg2.
 # En caso contrario se usa SQLite (ideal para desarrollo local).
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///db.sqlite3")
+# Usamos `or` para que Vercel (donde env vars no definidas vienen como "")
+# tambien use el default de SQLite en dev.
+DATABASE_URL = os.environ.get("DATABASE_URL") or "sqlite:///db.sqlite3"
 
 if DATABASE_URL.startswith("postgres://") or DATABASE_URL.startswith("postgresql://"):
     from urllib.parse import urlparse
