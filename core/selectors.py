@@ -13,5 +13,11 @@ def obtener_saldo_inicial() -> Decimal:
     return config.saldo_inicial
 
 
-def obtener_configuracion() -> ConfiguracionSistema | None:
-    return ConfiguracionSistema.objects.first()
+def obtener_configuracion() -> ConfiguracionSistema:
+    """Devuelve la configuracion del sistema. Si no existe, crea una vacia."""
+    config = ConfiguracionSistema.objects.first()
+    if not config:
+        config = ConfiguracionSistema.objects.create(
+            saldo_inicial=Decimal("0.00"),
+        )
+    return config
