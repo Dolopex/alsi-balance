@@ -30,10 +30,13 @@ def home(request):
 
     totales = totales_por_tipo(qs_periodo)
     saldo_inicial = obtener_saldo_inicial()
-    saldo_total = calcular_saldo(
-        saldo_inicial,
-        listar_movimientos().filter(fecha__lte=fecha_hasta),
-    )
+    # Si el rango es "todo" (sin filtros), usar todos los movimientos
+    todos_los_movs = listar_movimientos()
+    if fecha_hasta:
+        movimientos_hasta = todos_los_movs.filter(fecha__lte=fecha_hasta)
+    else:
+        movimientos_hasta = todos_los_movs
+    saldo_total = calcular_saldo(saldo_inicial, movimientos_hasta)
 
     ultimos = ultimos_movimientos(limit=8)
 

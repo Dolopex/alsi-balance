@@ -31,8 +31,11 @@ def _resolver_rango(request):
 
     Soporta: hoy, semana, mes, mes_anterior, 3m, 6m, 12m, anio, anio_anterior, todo, personalizado.
     Si es personalizado, usa fecha_desde / fecha_hasta del request.
+
+    Default: 'todo' (sin filtro) para que los charts del dashboard siempre
+    tengan datos aunque el mes actual este vacio.
     """
-    rango = request.GET.get("rango", "mes")
+    rango = request.GET.get("rango", "todo")
     hoy = timezone.localdate()
 
     if rango == "hoy":
