@@ -112,6 +112,24 @@ def _credentials_desde_config(config: ConfiguracionGmail):
     )
 
 
+def _credentials_validos(config: ConfiguracionGmail) -> bool:
+    """Verifica si los credenciales son utilizables."""
+    if not config.refresh_token and not config.access_token:
+        return False
+    return True
+
+
+def _invalidar_credenciales(config: ConfiguracionGmail):
+    """Marca los credenciales como expirados. El user debera reconectar."""
+    from .models import ConfiguracionGmail
+
+    ConfiguracionGmail.objects.filter(pk=config.pk).update(
+        access_token="",
+        conectado=False,
+    )
+    logger.warning("ALSI Gmail: credenciales invalidadas, requiere reconexion")
+
+
 def listar_correos_bancolombia(
     service,
     max_results: int = 50,
@@ -208,7 +226,10 @@ def sincronizar_correos(max_results: int = 50, days_back: int = 30) -> dict:
         - nuevos: nuevos movimientos creados
         - ignorados: ya existian
         - errores: cantidad de errores
+        - msg: mensaje de error si algo fallo (ej: token expirado)
     """
+    from google.auth.exceptions import RefreshError
+
     config = obtener_configuracion()
     if not config.conectado:
         return {"procesados": 0, "nuevos": 0, "ignorados": 0, "errores": 0, "msg": "Gmail no conectado."}
@@ -217,10 +238,24 @@ def sincronizar_correos(max_results: int = 50, days_back: int = 30) -> dict:
     if not creds:
         return {"procesados": 0, "nuevos": 0, "ignorados": 0, "errores": 1, "msg": "Sin credenciales."}
 
-    service = construir_servicio_gmail(creds)
-
-    metricas = {"procesados": 0, "nuevos": 0, "ignorados": 0, "errores": 0}
-    correos = listar_correos_bancolombia(service, max_results=max_results, days_back=days_back)
+    try:
+        service = construir_servicio_gmail(creds)
+        metricas = {"procesados": 0, "nuevos": 0, "ignorados": 0, "errores": 0}
+        correos = listar_correos_bancolombia(service, max_results=max_results, days_back=days_back)
+    except RefreshError as exc:
+        # Token expirado o revocado. Invalidar y pedir reconexion.
+        _invalidar_credenciales(config)
+        logger.warning("ALSI Gmail: RefreshError - %s", exc)
+        return {
+            "procesados": 0, "nuevos": 0, "ignorados": 0, "errores": 1,
+            "msg": "Token de Gmail expirado o revocado. Reconecta Gmail desde el dashboard.",
+        }
+    except Exception as exc:
+        logger.exception("ALSI Gmail: error inesperado en sync: %s", exc)
+        return {
+            "procesados": 0, "nuevos": 0, "ignorados": 0, "errores": 1,
+            "msg": f"Error inesperado: {exc}",
+        }
 
     for ref in correos:
         message_id = ref.get("id")
